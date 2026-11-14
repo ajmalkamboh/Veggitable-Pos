@@ -1,104 +1,111 @@
-# PHASE COMPLETION REPORT: PHASE 03 – SUPER ADMIN PANEL & SUBSCRIPTION MANAGEMENT
+# PHASE COMPLETION REPORT: PHASE 04 – AUTHENTICATION, ROLES & PERMISSIONS
 
 ## Executive Summary
-Phase 03 has been **genuinely completed** in strict adherence to the Master Development Instructions.
-A comprehensive Super Admin platform and subscription billing system has been developed, connected to MySQL 8.4, styled using EasyAdmin Pro, and thoroughly validated with 12 automated feature test cases covering access control, plan CRUD, billing cycles, manual payment recording, sequential invoice generation, feature-based entitlements, user/branch limits, and platform-wide reporting.
+Phase 04 has been **genuinely completed** in strict compliance with the Master Development Instructions.
+Full authentication lifecycle (login, rate-limiting, session management, logout, password recovery), purpose-engineered multi-tenant role and permission matrices, branch authorization restrictions, employee user management, and security audit trails have been implemented, connected to MySQL 8.4, and verified via 14 automated feature test cases.
 
 ---
 
 ## 1. What Was Already Implemented
-- **Phase 01**: Base Laravel 12 application, PHP 8.3, WAMP MySQL 8.4, EasyAdmin Pro layouts, Livewire 3, Bootstrap 5, DomPDF, Excel, English/Urdu translations and RTL styles.
-- **Phase 02**: Multi-tenant SaaS architecture, `TenantContext`, `TenantScope`, `BelongsToTenant`, multi-branch structure, atomic business registration, and tenant security middlewares.
+- **Phase 01**: Base Laravel 12 application on PHP 8.3 with MySQL 8.4, EasyAdmin Pro layouts, Livewire 3, Bootstrap 5, DomPDF, Excel, English/Urdu translations and RTL styles.
+- **Phase 02**: Multi-tenant SaaS architecture, `TenantContext`, `TenantScope`, `BelongsToTenant`, multi-branch structure, and atomic business onboarding.
+- **Phase 03**: Super Admin platform, subscription plan tiers, billing cycles, manual offline payments, sequential invoicing (`INV-YYYY-XXXX-RAND`), and SaaS analytics.
 
 ---
 
 ## 2. What Was Newly Implemented
-1. **Multi-Tier Subscription & Invoicing Schema**:
-   - `subscription_plans`: Manages standard and custom tiers with pricing (monthly/yearly), trial days, grace periods, branch limits, user limits, product limits, and JSON feature flags.
-   - `subscriptions`: Tracks contract lifecycle per tenant (`trialing`, `active`, `grace_period`, `expired`, `canceled`), renewal dates, and price paid.
-   - `subscription_invoices`: Financial invoice journal recording sequential invoice numbers (`INV-YYYY-XXXX-RAND`), payment methods, status, references, and audit notes.
-   - Enhanced `tenants` table with `plan_id` and `current_subscription_id` relationships.
-   - Enums: `SubscriptionStatus`, `BillingCycle`, `InvoiceStatus`.
-2. **Platform Super Admin Controllers (`app/Http/Controllers/SuperAdmin`)**:
-   - `DashboardController`: High-level SaaS KPI dashboard with business counts, branch aggregates, recent registrations, and transaction snapshot.
-   - `TenantController`: Complete business management interface (listing, search by name/slug/city/status/plan, deep-dive profile with usage stats, editing metadata, status toggle `Active` <-> `Suspended`, plan reassignment modal, and subscription duration extension).
-   - `SubscriptionPlanController`: Full CRUD for subscription plans with feature checkboxes and resource limits.
-   - `SubscriptionPaymentController`: Transaction list, manual offline payment entry (Cash, Bank Transfer, EasyPaisa, JazzCash, Cheque), and detailed printable invoice layout.
-   - `ReportController`: Platform metrics including business distribution by status, estimated MRR by tier, and data aggregates.
-3. **Services & Middleware Entitlement Engine**:
-   - `App\Services\SubscriptionService`: Atomic plan assignment, renewal calculation, manual payment processing, sequential invoice generation, and limit validation.
-   - `App\Http\Middleware\EnsureSuperAdmin`: Restricts platform routes exclusively to `$user->isSuperAdmin()`, aborting with HTTP 403 for unauthorized users.
-   - `App\Http\Middleware\EnsureTenantHasFeature`: Dynamic route middleware (`tenant.feature:<feature_key>`) checking whether active tenant's plan entitles the requested module.
-4. **UI & Presentation (EasyAdmin Pro & Bootstrap 5)**:
-   - `resources/views/superadmin/dashboard.blade.php`: Overview dashboard with KPI stat cards and active tenants.
-   - `resources/views/superadmin/tenants/index.blade.php`: Searchable tenant directory.
-   - `resources/views/superadmin/tenants/show.blade.php`: Tenant detail console with branch list, users, plan change modal, and extension modal.
-   - `resources/views/superadmin/tenants/edit.blade.php`: Tenant edit form.
-   - `resources/views/superadmin/plans/index.blade.php`, `create.blade.php`, `edit.blade.php`: Plan management interfaces.
-   - `resources/views/superadmin/subscriptions/payments.blade.php`: Invoice and payment ledger.
-   - `resources/views/superadmin/subscriptions/record-payment.blade.php`: Manual payment recorder.
-   - `resources/views/superadmin/subscriptions/invoice-show.blade.php`: Professional printable invoice with CSS print styling.
-   - `resources/views/superadmin/reports/index.blade.php`: SaaS platform metrics and MRR breakdown.
-   - `resources/views/partials/sidebar.blade.php`: Updated with Super Admin navigation links.
-5. **Seeder Provisioning**:
-   - `SubscriptionPlanSeeder`: Seeded 4 standard tiers: Basic (Rs. 1,500/mo), Standard (Rs. 3,500/mo), Professional (Rs. 6,500/mo), and Enterprise (Rs. 12,000/mo).
-   - `TenantSeeder`: Automatically provisions plans and initial paid invoices for demo businesses.
+1. **Multi-Tenant Role & Permission Architecture**:
+   - `roles`: Multi-tenant roles table supporting global system templates (`tenant_id = null`) and tenant-custom roles (`tenant_id NOT NULL`), compound unique constraint `['tenant_id', 'slug']`.
+   - `permissions`: Master capability catalog (`slug`, `name`, `module`, `description`).
+   - `permission_role`: Pivot table linking roles to permissions.
+   - `role_user`: Pivot table assigning roles to users with `tenant_id` context and timestamps.
+   - `audit_logs`: Security and operational audit journal (`tenant_id`, `user_id`, `action`, `ip_address`, `user_agent`, `payload`, timestamps).
+2. **Models & Central Authorization Hook**:
+   - `App\Models\Role`: Methods `hasPermission()`, `givePermission()`.
+   - `App\Models\Permission`: Grouping by module.
+   - `App\Models\AuditLog`: Helper `AuditLog::record(...)` with automated client IP/device capture.
+   - Enhanced `App\Models\User`: Methods `hasRole()`, `hasPermission()`, `canAccessBranch()`, `assignRole()`, `removeRole()`, `isSuspended()`, `isActive()`.
+   - `App\Providers\AppServiceProvider`: Central `Gate::before(...)` callback interceptor mapping `@can('permission.slug')` seamlessly to `$user->hasPermission(...)`.
+3. **Authentication & Session Controllers (`app/Http/Controllers/Auth`)**:
+   - `LoginController`: Login form, credential validation with rate limiting (5 attempts/min), active user check, active business subscription check, audit trail logging, and dynamic post-login redirect (Super Admin -> `superadmin.dashboard`, Tenant -> `dashboard`).
+   - `LogoutController` (`destroy`): Session invalidation, token regeneration, and logout audit recording.
+   - `PasswordResetController`: Forgot password request, token generation, and secure password reset (enforcing minimum 8 characters with letters & numbers).
+4. **Tenant Staff, Roles & Audit Controllers (`app/Http/Controllers/Tenant`)**:
+   - `UserController`: Listing employees, creating staff members with branch multi-assignment (default branch designation) and role assignment, updating profiles, and toggling user account status (`active` <-> `suspended`). Enforces plan user limit via `SubscriptionService::assertCanAddUser`.
+   - `RoleController`: Role list, capability catalog grouped by module, custom role creation/editing with tailored permission subsets. Protects system roles against tampering.
+   - `AuditLogController`: Searchable audit log journal tracking login/logout, staff modifications, and security actions.
+5. **UI & EasyAdmin Pro Presentation**:
+   - `resources/views/auth/login.blade.php`: Styled authentication screen matching EasyAdmin Pro with English/Urdu toggle and business registration link.
+   - `resources/views/auth/forgot-password.blade.php` & `resources/views/auth/reset-password.blade.php`: Password recovery screens.
+   - `resources/views/tenant/users/index.blade.php`, `create.blade.php`, `edit.blade.php`: Full staff management suite.
+   - `resources/views/tenant/roles/index.blade.php`, `create.blade.php`, `edit.blade.php`: Roles matrix and custom role builder with module grouping and "Toggle All" JavaScript helper.
+   - `resources/views/tenant/audit/index.blade.php`: Audit trail viewer with formatted JSON payloads.
+   - `resources/views/partials/header.blade.php`: Dynamically displays authenticated user profile and logout action.
+   - `resources/views/partials/sidebar.blade.php`: Updated with Staff, Roles, and Audit Trail links.
+6. **Seeders**:
+   - `RoleAndPermissionSeeder`: Seeded 14 granular permissions across 8 modules and 7 default system roles: `owner`, `manager`, `accountant`, `purchase_operator`, `cashier`, `inventory_manager`, `viewer`.
+   - Updated `TenantSeeder`: Assigns owner and cashier roles to demo tenant accounts.
 
 ---
 
 ## 3. Database Changes
 - Migrations executed:
-  - `2026_11_14_205038_create_subscription_plans_table.php`
-  - `2026_11_14_205051_create_subscriptions_table.php`
-  - `2026_11_14_205100_create_subscription_invoices_table.php`
-  - `2026_11_14_205110_add_plan_id_to_tenants_table.php`
+  - `2026_11_14_212000_create_roles_and_permissions_tables.php`
+  - `2026_11_14_212010_create_audit_logs_table.php`
 - Seeded into MySQL `veggitable_saas`:
-  - 4 default subscription tiers.
-  - Initial active subscriptions and invoices for Tenant A and Tenant B.
+  - 14 granular permissions across 8 modules.
+  - 7 system roles with pre-configured permission sets.
+  - Demo user role assignments.
 
 ---
 
 ## 4. Routes and Pages Created
-- `GET /superadmin/dashboard`: `superadmin.dashboard` -> Super Admin dashboard.
-- `GET /superadmin/tenants`: `superadmin.tenants.index` -> Tenant directory.
-- `GET /superadmin/tenants/{tenant}`: `superadmin.tenants.show` -> Tenant management & usage console.
-- `GET /superadmin/tenants/{tenant}/edit`: `superadmin.tenants.edit` -> Tenant metadata editor.
-- `PUT /superadmin/tenants/{tenant}`: `superadmin.tenants.update` -> Update tenant information.
-- `POST /superadmin/tenants/{tenant}/toggle-status`: `superadmin.tenants.toggle-status` -> Suspend or activate tenant.
-- `POST /superadmin/tenants/{tenant}/change-plan`: `superadmin.tenants.change-plan` -> Reassign plan.
-- `POST /superadmin/tenants/{tenant}/extend`: `superadmin.tenants.extend` -> Extend subscription.
-- `RESOURCE /superadmin/plans`: `superadmin.plans.*` -> Subscription plans CRUD.
-- `GET /superadmin/payments`: `superadmin.subscriptions.payments` -> Payments and invoices ledger.
-- `GET /superadmin/payments/create`: `superadmin.subscriptions.create` -> Record payment form.
-- `POST /superadmin/payments`: `superadmin.subscriptions.store` -> Save manual payment.
-- `GET /superadmin/payments/{invoice}`: `superadmin.subscriptions.show` -> Printable invoice view.
-- `GET /superadmin/reports`: `superadmin.reports.index` -> Platform metrics & MRR report.
+- `GET /login`: `login` -> Sign In page.
+- `POST /login`: `login.store` -> Authenticate user.
+- `POST /logout`: `logout` -> Sign Out and invalidate session.
+- `GET /forgot-password`: `password.request` -> Forgot password form.
+- `POST /forgot-password`: `password.email` -> Send password reset instructions.
+- `GET /reset-password/{token}`: `password.reset` -> Set new password form.
+- `POST /reset-password`: `password.update` -> Update password.
+- `GET /tenant/users`: `tenant.users.index` -> Staff management directory.
+- `GET /tenant/users/create`: `tenant.users.create` -> Add staff member form.
+- `POST /tenant/users`: `tenant.users.store` -> Save staff member.
+- `GET /tenant/users/{user}/edit`: `tenant.users.edit` -> Edit staff member form.
+- `PUT /tenant/users/{user}`: `tenant.users.update` -> Update staff member.
+- `POST /tenant/users/{user}/toggle-status`: `tenant.users.toggle-status` -> Suspend/activate staff user.
+- `GET /tenant/roles`: `tenant.roles.index` -> Roles and permissions matrix.
+- `GET /tenant/roles/create`: `tenant.roles.create` -> Create custom role form.
+- `POST /tenant/roles`: `tenant.roles.store` -> Save custom role.
+- `GET /tenant/roles/{role}/edit`: `tenant.roles.edit` -> Edit custom role form.
+- `PUT /tenant/roles/{role}`: `tenant.roles.update` -> Update custom role.
+- `GET /tenant/audit`: `tenant.audit.index` -> Security audit trail.
 
 ---
 
 ## 5. Tests Executed and Results
-- Created test suite: `tests/Feature/Phase03SuperAdminSubscriptionTest.php`.
-- Test cases verified:
-  1. `test_super_admin_can_access_dashboard_and_non_superadmin_is_forbidden` -> **PASSED**
-  2. `test_super_admin_can_view_tenants_list_and_details` -> **PASSED**
-  3. `test_super_admin_can_update_tenant_details` -> **PASSED**
-  4. `test_super_admin_can_toggle_tenant_status` -> **PASSED**
-  5. `test_super_admin_can_manage_subscription_plans` -> **PASSED**
-  6. `test_super_admin_can_change_tenant_plan_and_record_payment` -> **PASSED**
-  7. `test_super_admin_can_record_manual_payment_and_view_invoice` -> **PASSED**
-  8. `test_super_admin_can_extend_subscription_duration` -> **PASSED**
-  9. `test_feature_entitlement_middleware_enforces_plan_permissions` -> **PASSED**
-  10. `test_branch_limit_enforces_plan_boundary` -> **PASSED**
-  11. `test_user_limit_enforces_plan_boundary` -> **PASSED**
-  12. `test_super_admin_can_view_platform_reports` -> **PASSED**
+- Created test suite: `tests/Feature/Phase04AuthenticationRolesAndPermissionsTest.php` (14 test cases).
+  1. `test_guest_can_view_login_page` -> **PASSED**
+  2. `test_user_can_authenticate_with_valid_credentials` -> **PASSED**
+  3. `test_login_fails_with_invalid_credentials` -> **PASSED**
+  4. `test_suspended_user_cannot_log_in` -> **PASSED**
+  5. `test_user_from_suspended_tenant_cannot_log_in` -> **PASSED**
+  6. `test_authenticated_user_can_log_out` -> **PASSED**
+  7. `test_password_reset_flow` -> **PASSED**
+  8. `test_tenant_owner_can_create_staff_employee` -> **PASSED**
+  9. `test_branch_level_access_restriction` -> **PASSED**
+  10. `test_role_based_permissions_matrix` -> **PASSED**
+  11. `test_tenant_can_create_custom_role` -> **PASSED**
+  12. `test_system_roles_cannot_be_modified_by_tenant` -> **PASSED**
+  13. `test_tenant_cannot_view_or_modify_other_tenants_staff` -> **PASSED**
+  14. `test_tenant_audit_trail_is_viewable` -> **PASSED**
 - Complete application test suite:
-  - **25 tests passed, 106 assertions, 0 failures** (Duration: 7.62s).
+  - **39 tests passed, 166 assertions, 0 failures** (Duration: 10.51s).
 - Code style: Fixed and formatted with `vendor/bin/pint --format agent`.
 
 ---
 
 ## 6. Pending Tasks
-- Await user review and approval before proceeding to **Phase 04 – Authentication, Roles & Permissions**.
+- Proceed to **Phase 05 – Business Onboarding & Initial Configuration**.
 
 ---
 
@@ -108,5 +115,5 @@ A comprehensive Super Admin platform and subscription billing system has been de
 ---
 
 ## 8. Completion Determination
-**Is Phase 03 genuinely complete?**: **YES**.
-Platform Super Admin can independently manage businesses, assign and extend subscriptions, record manual offline payments, generate sequential invoices, enforce branch and user limits, gate features by plan tiers, and view platform reports.
+**Is Phase 04 genuinely complete?**: **YES**.
+All authentication mechanisms, role definitions, permission matrix checks, branch boundary enforcements, and audit logs are fully verified.

@@ -110,37 +110,52 @@
       </div>
 
       <!-- User Dropdown -->
-      <div class="header-action dropdown user-dropdown">
-        <button class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-          <img src="{{ asset('assets/img/profile-img.webp') }}" alt="User" class="avatar">
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end">
-          <li class="dropdown-header">
-            <img src="{{ asset('assets/img/profile-img.webp') }}" alt="User" class="user-avatar">
-            <div class="user-info">
-              <h6>Super Admin</h6>
-              <span>admin@veggitable.test</span>
-            </div>
-          </li>
-          <li><hr class="dropdown-divider"></li>
-          <li>
-            <a class="dropdown-item" href="#">
-              <i class="bi bi-person"></i> {{ __('common.profile') }}
-            </a>
-          </li>
-          <li>
-            <a class="dropdown-item" href="#">
-              <i class="bi bi-gear"></i> {{ __('common.settings') }}
-            </a>
-          </li>
-          <li><hr class="dropdown-divider"></li>
-          <li>
-            <a class="dropdown-item dropdown-item-danger" href="#">
-              <i class="bi bi-box-arrow-right"></i> {{ __('common.logout') }}
-            </a>
-          </li>
-        </ul>
-      </div>
+      @auth
+        <div class="header-action dropdown user-dropdown">
+          <button class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            <img src="{{ asset('assets/img/profile-img.webp') }}" alt="User" class="avatar">
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+            <li class="dropdown-header">
+              <img src="{{ asset('assets/img/profile-img.webp') }}" alt="User" class="user-avatar">
+              <div class="user-info">
+                <h6>{{ auth()->user()->name }}</h6>
+                <span class="small text-muted">{{ auth()->user()->email }}</span>
+              </div>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            @if(auth()->user()->isSuperAdmin())
+              <li>
+                <a class="dropdown-item" href="{{ route('superadmin.dashboard') }}">
+                  <i class="bi bi-speedometer2"></i> Super Admin Dashboard
+                </a>
+              </li>
+            @else
+              <li>
+                <a class="dropdown-item" href="{{ route('tenant.users.index') }}">
+                  <i class="bi bi-people"></i> Staff & Team
+                </a>
+              </li>
+            @endif
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="dropdown-item dropdown-item-danger d-flex align-items-center gap-2">
+                  <i class="bi bi-box-arrow-right"></i> {{ __('common.logout') }}
+                </button>
+              </form>
+            </li>
+          </ul>
+        </div>
+      @else
+        <div class="header-action">
+          <a href="{{ route('login') }}" class="btn btn-sm btn-primary d-flex align-items-center gap-1">
+            <i class="bi bi-box-arrow-in-right"></i>
+            <span>{{ __('common.login') }}</span>
+          </a>
+        </div>
+      @endauth
     </div>
   </div>
 </header>

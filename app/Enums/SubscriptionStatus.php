@@ -46,4 +46,3 @@ enum SubscriptionStatus: string
         return in_array($this, [self::Trialing, self::Active, self::GracePeriod]);
     }
 }
-

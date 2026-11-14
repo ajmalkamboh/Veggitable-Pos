@@ -1,15 +1,15 @@
 # KNOWN ISSUES & TECHNICAL DEBT TRACKER
 
-## Phase 03 Status: Complete & Verified — No Active Blockers
+## Phase 04 Status: Complete & Verified — No Active Blockers
 
 ### Notes & Verifications:
 1. **Singleton Registration for Multi-Tenancy**:
    - `TenantContext` and `TenantManager` remain singletons in `AppServiceProvider`.
-2. **Compound Unique Indexing on Per-Tenant Codes**:
-   - Multiple tenants continue to independently have branch code `HQ-01` or record code `REC-001` without collision due to composite unique keys `(tenant_id, code)`.
-3. **Sequential Invoice Generation**:
-   - Invoices use `INV-YYYY-XXXX-RAND` format generated inside atomic database transactions (`SubscriptionService::generateInvoiceNumber`).
-4. **Subscription Limits & Feature Guarding**:
-   - Feature entitlement middleware (`tenant.feature:<feature>`) and limit assertions (`assertCanAddBranch`, `assertCanAddUser`) throw `Symfony\Component\HttpKernel\Exception\HttpException` with HTTP status code 403 when violated.
-5. **Soft Deletion of Plans with Active Subscribers**:
-   - If a Super Admin attempts to delete a plan that still has active subscribers, the system automatically deactivates (`is_active = false`) the plan rather than hard-deleting, preserving referential integrity.
+2. **Central Gate Interceptor**:
+   - `Gate::before()` interceptor defined in `AppServiceProvider` routes all authorization checks through `$user->hasPermission($ability)` for regular staff while granting super admins and business owners overarching rights without breaking model policies.
+3. **Compound Unique Indexing on Roles**:
+   - Composite unique key `(tenant_id, slug)` permits multiple tenants to create custom roles sharing identical slugs without database collision while maintaining unique slugs within a tenant.
+4. **Immutable System Roles**:
+   - Pre-seeded system roles (`is_system = true`, `tenant_id = null`) are protected in `RoleController` from modification or deletion by tenant owners.
+5. **Session & Rate Limiting Security**:
+   - Login attempts are throttled by email and IP address (5 attempts per minute). Suspended users or users belonging to suspended businesses are prevented from authenticating and have their sessions immediately invalidated.

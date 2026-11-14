@@ -82,4 +82,3 @@ class SubscriptionPaymentController extends Controller
         return view('superadmin.subscriptions.invoice-show', compact('invoice'));
     }
 }
-

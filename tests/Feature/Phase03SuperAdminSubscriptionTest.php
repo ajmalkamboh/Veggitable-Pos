@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Core\MultiTenancy\TenantContext;
 use App\Enums\BillingCycle;
 use App\Enums\InvoiceStatus;
-use App\Enums\SubscriptionStatus;
 use App\Enums\TenantStatus;
 use App\Models\Branch;
 use App\Models\Subscription;
@@ -24,10 +23,15 @@ class Phase03SuperAdminSubscriptionTest extends TestCase
     use RefreshDatabase;
 
     protected User $superAdmin;
+
     protected User $regularTenantUser;
+
     protected Tenant $tenant;
+
     protected SubscriptionPlan $basicPlan;
+
     protected SubscriptionPlan $proPlan;
+
     protected SubscriptionService $subscriptionService;
 
     protected function setUp(): void

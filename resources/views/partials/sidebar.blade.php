@@ -147,13 +147,19 @@
       </li>
 
       <!-- Settings & Administration -->
-      <li class="nav-heading"><span>System</span></li>
+      <li class="nav-heading"><span>System & Staff</span></li>
 
-      <li class="nav-item">
-        <a class="nav-link" href="#" data-tooltip="Roles & Access">
+      <li class="nav-item has-submenu {{ request()->routeIs('tenant.users.*') || request()->routeIs('tenant.roles.*') || request()->routeIs('tenant.audit.*') ? 'show' : '' }}">
+        <a class="nav-link {{ request()->routeIs('tenant.users.*') || request()->routeIs('tenant.roles.*') || request()->routeIs('tenant.audit.*') ? 'active' : '' }}" href="#" aria-expanded="false" data-tooltip="Staff & Roles">
           <i class="ph-duotone ph-shield-check"></i>
-          <span>Roles & Permissions</span>
+          <span>Staff & Access</span>
+          <i class="ph-duotone ph-caret-down nav-arrow"></i>
         </a>
+        <ul class="nav-submenu">
+          <li><a class="nav-link {{ request()->routeIs('tenant.users.*') ? 'active' : '' }}" href="{{ route('tenant.users.index') }}">Staff Members</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.roles.*') ? 'active' : '' }}" href="{{ route('tenant.roles.index') }}">Roles & Permissions</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.audit.*') ? 'active' : '' }}" href="{{ route('tenant.audit.index') }}">Security Audit Trail</a></li>
+        </ul>
       </li>
 
       <li class="nav-item">

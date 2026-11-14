@@ -120,4 +120,3 @@ class Subscription extends Model
         return max(0, (int) now()->diffInDays($targetDate, false));
     }
 }
-

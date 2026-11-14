@@ -159,4 +159,3 @@ class TenantController extends Controller
         return redirect()->back()->with('success', "Subscription for '{$tenant->name}' extended by {$validated['months']} month(s).");
     }
 }
-

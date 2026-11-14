@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Enums\BillingCycle;
 use App\Enums\TenantStatus;
 use App\Models\Branch;
+use App\Models\Role;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Models\TenantRecord;
@@ -23,6 +24,9 @@ class TenantSeeder extends Seeder
         $subscriptionService = app(SubscriptionService::class);
         $standardPlan = SubscriptionPlan::where('slug', 'standard')->first();
         $basicPlan = SubscriptionPlan::where('slug', 'basic')->first();
+
+        $ownerRole = Role::where('slug', 'owner')->first();
+        $cashierRole = Role::where('slug', 'cashier')->first();
 
         // 1. Platform Super Admin (No tenant attachment)
         User::firstOrCreate(
@@ -104,6 +108,36 @@ class TenantSeeder extends Seeder
             $branchA2->id => ['tenant_id' => $tenantA->id, 'is_default' => false],
         ]);
 
+        if ($ownerRole) {
+            $ownerA->roles()->syncWithoutDetaching([
+                $ownerRole->id => ['tenant_id' => $tenantA->id],
+            ]);
+        }
+
+        // Add Cashier employee to Tenant A
+        $cashierA = User::firstOrCreate(
+            ['email' => 'cashier@almadina.test'],
+            [
+                'name' => 'Bilal Cashier',
+                'password' => Hash::make('password'),
+                'tenant_id' => $tenantA->id,
+                'current_branch_id' => $branchA1->id,
+                'is_super_admin' => false,
+                'is_tenant_owner' => false,
+                'status' => 'active',
+            ]
+        );
+
+        $cashierA->branches()->syncWithoutDetaching([
+            $branchA1->id => ['tenant_id' => $tenantA->id, 'is_default' => true],
+        ]);
+
+        if ($cashierRole) {
+            $cashierA->roles()->syncWithoutDetaching([
+                $cashierRole->id => ['tenant_id' => $tenantA->id],
+            ]);
+        }
+
         // 3. Tenant B: Bismillah Green Grocers
         $tenantB = Tenant::firstOrCreate(
             ['slug' => 'bismillah'],
@@ -135,7 +169,7 @@ class TenantSeeder extends Seeder
         }
 
         $branchB1 = Branch::firstOrCreate(
-            ['tenant_id' => $tenantB->id, 'code' => 'HQ-01'], // Note: Same code HQ-01 as Tenant A, demonstrating multi-tenant compound unique indexes!
+            ['tenant_id' => $tenantB->id, 'code' => 'HQ-01'], // Note: Same code HQ-01 as Tenant A!
             [
                 'name' => 'Bismillah Central Branch',
                 'city' => 'Karachi',
@@ -160,6 +194,12 @@ class TenantSeeder extends Seeder
         $ownerB->branches()->syncWithoutDetaching([
             $branchB1->id => ['tenant_id' => $tenantB->id, 'is_default' => true],
         ]);
+
+        if ($ownerRole) {
+            $ownerB->roles()->syncWithoutDetaching([
+                $ownerRole->id => ['tenant_id' => $tenantB->id],
+            ]);
+        }
 
         // Seed Sample Isolated Records
         TenantRecord::withoutGlobalScopes()->firstOrCreate(

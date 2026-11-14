@@ -58,4 +58,3 @@ class SubscriptionInvoice extends Model
         return $this->belongsTo(SubscriptionPlan::class, 'plan_id');
     }
 }
-

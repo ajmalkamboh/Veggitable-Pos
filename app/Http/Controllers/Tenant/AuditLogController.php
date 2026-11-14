@@ -38,4 +38,3 @@ class AuditLogController extends Controller
         return view('tenant.audit.index', compact('logs', 'tenant'));
     }
 }
-

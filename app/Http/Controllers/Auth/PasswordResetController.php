@@ -91,4 +91,3 @@ class PasswordResetController extends Controller
         return redirect()->route('login')->with('success', 'Your password has been reset successfully. Please log in with your new password.');
     }
 }
-

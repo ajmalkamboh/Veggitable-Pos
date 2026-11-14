@@ -1,15 +1,14 @@
 # KNOWN ISSUES & TECHNICAL DEBT TRACKER
 
-## Phase 04 Status: Complete & Verified — No Active Blockers
+## Phase 05 Status: Complete & Verified — No Active Blockers
 
 ### Notes & Verifications:
-1. **Singleton Registration for Multi-Tenancy**:
-   - `TenantContext` and `TenantManager` remain singletons in `AppServiceProvider`.
-2. **Central Gate Interceptor**:
-   - `Gate::before()` interceptor defined in `AppServiceProvider` routes all authorization checks through `$user->hasPermission($ability)` for regular staff while granting super admins and business owners overarching rights without breaking model policies.
-3. **Compound Unique Indexing on Roles**:
-   - Composite unique key `(tenant_id, slug)` permits multiple tenants to create custom roles sharing identical slugs without database collision while maintaining unique slugs within a tenant.
-4. **Immutable System Roles**:
-   - Pre-seeded system roles (`is_system = true`, `tenant_id = null`) are protected in `RoleController` from modification or deletion by tenant owners.
-5. **Session & Rate Limiting Security**:
-   - Login attempts are throttled by email and IP address (5 attempts per minute). Suspended users or users belonging to suspended businesses are prevented from authenticating and have their sessions immediately invalidated.
+1. **Onboarding Gating Middleware**:
+   - `EnsureTenantOnboarded` intercepts non-onboarded tenants attempting to trade or record transactions, redirecting them smoothly to the 4-step wizard.
+   - Platform Super Admin and administrative context switchers (`/tenant/branch/{branch}/switch`, `/tenant/switch/{tenant}`) correctly bypass onboarding gating.
+2. **Preset Defaults for Produce Shops**:
+   - Industry-standard units (`kg`, `g`, `bori`, `crate`, `dz`, `pc`) and categories (Fresh Leafy, Roots, Fruiting, Fruits, Mandi lots, and common operational expenses) are pre-populated in Urdu & English.
+3. **Compound Unique Indexing on Categories & Units**:
+   - Composite keys `(tenant_id, code)` on units and `(tenant_id, type, slug)` on categories ensure complete isolation between tenants.
+4. **Historical Immutability**:
+   - Tenants can edit profile metadata, add branches, and manage categories post-onboarding without disrupting previously posted invoices or ledgers.

@@ -11,6 +11,7 @@ use App\Models\Tenant;
 use App\Models\TenantRecord;
 use App\Models\User;
 use App\Services\SubscriptionService;
+use App\Services\TenantOnboardingService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -22,6 +23,7 @@ class TenantSeeder extends Seeder
     public function run(): void
     {
         $subscriptionService = app(SubscriptionService::class);
+        $onboardingService = app(TenantOnboardingService::class);
         $standardPlan = SubscriptionPlan::where('slug', 'standard')->first();
         $basicPlan = SubscriptionPlan::where('slug', 'basic')->first();
 
@@ -200,6 +202,10 @@ class TenantSeeder extends Seeder
                 $ownerRole->id => ['tenant_id' => $tenantB->id],
             ]);
         }
+
+        // Complete onboarding setup for demo tenants
+        $onboardingService->completeOnboarding($tenantA);
+        $onboardingService->completeOnboarding($tenantB);
 
         // Seed Sample Isolated Records
         TenantRecord::withoutGlobalScopes()->firstOrCreate(

@@ -10,6 +10,7 @@ use App\Http\Controllers\SuperAdmin\SubscriptionPaymentController as SuperAdminP
 use App\Http\Controllers\SuperAdmin\SubscriptionPlanController as SuperAdminPlanController;
 use App\Http\Controllers\SuperAdmin\TenantController as SuperAdminTenantController;
 use App\Http\Controllers\Tenant\AuditLogController as TenantAuditController;
+use App\Http\Controllers\Tenant\OnboardingController as TenantOnboardingController;
 use App\Http\Controllers\Tenant\RoleController as TenantRoleController;
 use App\Http\Controllers\Tenant\UserController as TenantUserController;
 use App\Http\Controllers\TenantRecordController;
@@ -74,13 +75,20 @@ Route::prefix('superadmin')->name('superadmin.')->middleware(['auth', 'superadmi
     Route::get('/reports', [SuperAdminReportController::class, 'index'])->name('reports.index');
 });
 
-// Tenant-Isolated Operations
+// Tenant Operations & Administration
 Route::middleware(['auth', 'tenant.active', 'tenant.prevent_cross'])->group(function () {
-    // Isolated Records Demo
-    Route::get('/tenant/records', [TenantRecordController::class, 'index'])->name('tenant.records.index');
-    Route::post('/tenant/records', [TenantRecordController::class, 'store'])->name('tenant.records.store');
-    Route::get('/tenant/records/{record}', [TenantRecordController::class, 'show'])->name('tenant.records.show');
-    Route::post('/tenant/branch/{branch}/switch', [TenantRecordController::class, 'switchBranch'])->name('tenant.branch.switch');
+    // Business Onboarding Wizard
+    Route::prefix('tenant/onboarding')->name('tenant.onboarding.')->group(function () {
+        Route::get('/', [TenantOnboardingController::class, 'index'])->name('index');
+        Route::get('/step1', [TenantOnboardingController::class, 'step1'])->name('step1');
+        Route::post('/step1', [TenantOnboardingController::class, 'updateProfile'])->name('step1.update');
+        Route::get('/step2', [TenantOnboardingController::class, 'step2'])->name('step2');
+        Route::post('/step2', [TenantOnboardingController::class, 'saveBranch'])->name('step2.save');
+        Route::get('/step3', [TenantOnboardingController::class, 'step3'])->name('step3');
+        Route::post('/step3', [TenantOnboardingController::class, 'saveAccounts'])->name('step3.save');
+        Route::get('/step4', [TenantOnboardingController::class, 'step4'])->name('step4');
+        Route::post('/finish', [TenantOnboardingController::class, 'finish'])->name('finish');
+    });
 
     // Staff & User Management (Protected by 'users.manage' or Owner)
     Route::prefix('tenant/users')->name('tenant.users.')->group(function () {
@@ -103,4 +111,14 @@ Route::middleware(['auth', 'tenant.active', 'tenant.prevent_cross'])->group(func
 
     // Security & Audit Trail
     Route::get('/tenant/audit', [TenantAuditController::class, 'index'])->name('tenant.audit.index');
+
+    // Branch Context Switcher
+    Route::post('/tenant/branch/{branch}/switch', [TenantRecordController::class, 'switchBranch'])->name('tenant.branch.switch');
+
+    // Operational Business Routes (Gated by mandatory onboarding completion)
+    Route::middleware('tenant.onboarded')->group(function () {
+        Route::get('/tenant/records', [TenantRecordController::class, 'index'])->name('tenant.records.index');
+        Route::post('/tenant/records', [TenantRecordController::class, 'store'])->name('tenant.records.store');
+        Route::get('/tenant/records/{record}', [TenantRecordController::class, 'show'])->name('tenant.records.show');
+    });
 });

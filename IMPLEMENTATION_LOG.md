@@ -31,40 +31,45 @@
 
 ## Phase 04: Authentication, Roles & Permissions
 **Date**: 2026-11-15
+- Multi-Tenant Roles & Permissions Schema: `roles`, `permissions`, `permission_role`, `role_user`, `audit_logs`.
+- Controllers: `LoginController`, `PasswordResetController`, `UserController`, `RoleController`, `AuditLogController`.
+- Central authorization interceptor in `AppServiceProvider`.
+- All Phase 04 tests passed.
+
+---
+
+## Phase 05: Business Onboarding & Initial Configuration
+**Date**: 2026-11-15
 
 ### Actions Executed:
-1. **Multi-Tenant Roles & Permissions Schema**:
-   - `roles`: Multi-tenant roles table supporting global system templates (`tenant_id = null`) and tenant-custom roles (`tenant_id NOT NULL`), compound unique constraint `['tenant_id', 'slug']`.
-   - `permissions`: Granular capability catalog (`slug`, `name`, `module`, `description`).
-   - `permission_role`: Pivot table linking roles to permissions.
-   - `role_user`: Pivot table assigning roles to users with `tenant_id` context and timestamps.
-   - `audit_logs`: Security and operational audit trail (`tenant_id`, `user_id`, `action`, `ip_address`, `user_agent`, `payload`, timestamps).
-2. **Models & Authorization Interceptor**:
-   - `App\Models\Role`: Methods `hasPermission()`, `givePermission()`.
-   - `App\Models\Permission`: Relationships to roles.
-   - `App\Models\AuditLog`: Helper `AuditLog::record(...)` with automated client IP/device capture.
-   - Enhanced `App\Models\User`: Methods `hasRole()`, `hasPermission()`, `canAccessBranch()`, `assignRole()`, `removeRole()`, `isSuspended()`, `isActive()`.
-   - `App\Providers\AppServiceProvider`: Central `Gate::before(...)` callback interceptor mapping `@can('permission.slug')` seamlessly to `$user->hasPermission(...)` without interfering with model policies.
-3. **Authentication & Session Controllers (`app/Http/Controllers/Auth`)**:
-   - `LoginController`: Login form, credential validation with rate limiting (5 attempts/min), active user check, active business subscription check, audit trail logging, and dynamic post-login redirect (Super Admin -> `superadmin.dashboard`, Tenant -> `dashboard`).
-   - `LogoutController` (`destroy`): Session invalidation, token regeneration, and logout audit recording.
-   - `PasswordResetController`: Forgot password request, token generation, and secure password reset (enforcing minimum 8 characters with letters & numbers).
-4. **Tenant Staff, Roles & Audit Controllers (`app/Http/Controllers/Tenant`)**:
-   - `UserController`: Listing employees, creating staff members with branch multi-assignment (default branch designation) and role assignment, updating profiles, and toggling user account status (`active` <-> `suspended`). Enforces plan user limit via `SubscriptionService::assertCanAddUser`.
-   - `RoleController`: Role list, capability catalog grouped by module, custom role creation/editing with tailored permission subsets. Protects system roles against tampering.
-   - `AuditLogController`: Searchable audit log journal tracking login/logout, staff modifications, and security actions.
-5. **Views & EasyAdmin Pro UI**:
-   - `resources/views/auth/login.blade.php`: Styled authentication screen matching EasyAdmin Pro with English/Urdu toggle and business registration link.
-   - `resources/views/auth/forgot-password.blade.php` & `resources/views/auth/reset-password.blade.php`: Password recovery screens.
-   - `resources/views/tenant/users/index.blade.php`, `create.blade.php`, `edit.blade.php`: Full staff management suite.
-   - `resources/views/tenant/roles/index.blade.php`, `create.blade.php`, `edit.blade.php`: Roles matrix and custom role builder with module grouping and "Toggle All" JavaScript helper.
-   - `resources/views/tenant/audit/index.blade.php`: Audit trail viewer with formatted JSON payloads.
-   - `resources/views/partials/header.blade.php`: Dynamically displays authenticated user profile and logout action.
-   - `resources/views/partials/sidebar.blade.php`: Updated with Staff, Roles, and Audit Trail links.
-6. **Seeders**:
-   - `RoleAndPermissionSeeder`: Seeded 14 granular permissions across 8 modules and 7 default system roles: `owner`, `manager`, `accountant`, `purchase_operator`, `cashier`, `inventory_manager`, `viewer`.
-   - Updated `TenantSeeder`: Assigns owner and cashier roles to demo tenant accounts.
-7. **Automated Testing Suite**:
-   - `tests/Feature/Phase04AuthenticationRolesAndPermissionsTest.php`: 14 comprehensive test cases covering guest access, successful login, rate limiting, suspended user blocking, suspended tenant blocking, logout, password reset, employee creation, branch authorization, role permissions matrix, custom role creation, system role immutability, cross-tenant staff isolation, and audit trail generation.
-   - Complete application test suite: **39 tests passed, 166 assertions, 0 failures**.
-   - Code formatted via `vendor/bin/pint --format agent`.
+1. **Database Schema & Migrations**:
+   - `add_onboarding_fields_to_tenants_table`: Added `onboarding_completed` (boolean), `onboarding_step` (integer), `logo_path` (string), `financial_year_start` (string), and `business_opening_date` (date) to `tenants`.
+   - `create_financial_accounts_table`: Cash registers and bank accounts per tenant/branch (`type`, `bank_name`, `account_number`, `opening_balance`, `current_balance`, `is_active`).
+   - `create_measurement_units_table`: Units table (`name`, `name_ur`, `code`, `is_fractional`, `is_system`, compound unique on `[tenant_id, code]`).
+   - `create_master_categories_table`: Multi-purpose product & expense categories (`name`, `name_ur`, `slug`, `type`, compound unique on `[tenant_id, type, slug]`).
+2. **Models & Services**:
+   - `App\Models\FinancialAccount`: Uses `BelongsToTenant`.
+   - `App\Models\Unit`: Uses `BelongsToTenant`.
+   - `App\Models\Category`: Uses `BelongsToTenant`.
+   - Updated `App\Models\Tenant`: Added onboarding relationships (`accounts`, `units`, `categories`), and helper methods `isOnboarded()` and `onboardingProgressPercentage()`.
+   - `App\Services\TenantOnboardingService`: Automated provisioning of vegetable/fruit units (kg, g, bori, crate, dz, pc), Mandi product categories, shop expense classifications, cash drawer & bank accounts, and onboarding finalization.
+3. **Middleware**:
+   - `App\Http\Middleware\EnsureTenantOnboarded`: Gating middleware preventing non-onboarded tenants from accessing operational inventory, POS, or financial routes and redirecting them to the onboarding checklist. Super Admin and onboarding routes bypass the gate.
+   - Registered alias `'tenant.onboarded'` in `bootstrap/app.php`.
+4. **Onboarding Controller & Routes**:
+   - `App\Http\Controllers\Tenant\OnboardingController`:
+     - `index`: Overview dashboard with dynamic progress percentage and checklist cards.
+     - `step1` & `updateProfile`: Business profile, address, currency, timezone, logo upload, and fiscal year.
+     - `step2` & `saveBranch`: Headquarters branch establishment.
+     - `step3` & `saveAccounts`: Cash counter drawer and commercial bank account setup with opening balances.
+     - `step4` & `finish`: Pre-seeded master units and categories confirmation and completion trigger.
+5. **UI & Templates**:
+   - `resources/views/tenant/onboarding/index.blade.php`: Overview checklist with progress indicator.
+   - `resources/views/tenant/onboarding/step1.blade.php`: Business Profile form.
+   - `resources/views/tenant/onboarding/step2.blade.php`: Branch outlet setup form.
+   - `resources/views/tenant/onboarding/step3.blade.php`: Financial accounts setup form.
+   - `resources/views/tenant/onboarding/step4.blade.php`: Master units & categories confirmation.
+6. **Automated Testing Suite**:
+   - `tests/Feature/Phase05BusinessOnboardingTest.php`: 7 test cases covering checklist display, operational route gating via middleware, profile and logo update, branch saving, financial account setup, units & categories seeding, and unlocking operational access upon completion.
+   - Complete test suite: **46 tests passed, 202 assertions, 0 failures**.
+   - Code formatted with `vendor/bin/pint --format agent`.

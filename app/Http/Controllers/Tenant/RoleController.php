@@ -139,4 +139,3 @@ class RoleController extends Controller
         return redirect()->route('tenant.roles.index')->with('success', "Role '{$role->name}' updated successfully.");
     }
 }
-

@@ -225,4 +225,3 @@ class UserController extends Controller
         return back()->with('success', "Status for '{$user->name}' changed to ".strtoupper($newStatus).'.');
     }
 }
-

@@ -27,6 +27,11 @@ The central business entity for the SaaS platform.
 - `timezone`: VARCHAR(50) NOT NULL DEFAULT 'Asia/Karachi'
 - `default_locale`: VARCHAR(10) NOT NULL DEFAULT 'en'
 - `settings`: JSON NULL
+- `onboarding_completed`: BOOLEAN NOT NULL DEFAULT 0 (INDEXED)
+- `onboarding_step`: INT NOT NULL DEFAULT 1
+- `logo_path`: VARCHAR(255) NULL
+- `financial_year_start`: VARCHAR(10) NOT NULL DEFAULT '07-01'
+- `business_opening_date`: DATE NULL
 - `trial_ends_at`: TIMESTAMP NULL
 - `subscription_ends_at`: TIMESTAMP NULL
 - `created_at`, `updated_at`: TIMESTAMP NULL
@@ -67,138 +72,52 @@ System users, platform administrators, tenant owners, and branch staff.
 - `created_at`, `updated_at`: TIMESTAMP NULL
 - **Indexes**: `INDEX(tenant_id, status)`
 
-### `branch_user`
-Pivot table defining user branch assignments with default branch indicators.
-- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
-- `tenant_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
-- `branch_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `branches(id)` ON DELETE CASCADE
-- `user_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `users(id)` ON DELETE CASCADE
-- `is_default`: BOOLEAN NOT NULL DEFAULT 0
-- `created_at`, `updated_at`: TIMESTAMP NULL
-- **Indexes**: `UNIQUE(branch_id, user_id)`, `INDEX(tenant_id, user_id)`
+---
 
-### `tenant_records`
-Sample tenant-owned business entity demonstrating strict data isolation.
+## 2. Onboarding & Master Configuration Tables (Phase 05)
+
+### `financial_accounts`
+Cash registers/tills and shop commercial bank accounts per tenant.
 - `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
 - `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
 - `branch_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `branches(id)` ON DELETE SET NULL
-- `name`: VARCHAR(255) NOT NULL
-- `code`: VARCHAR(50) NOT NULL
-- `description`: TEXT NULL
-- `amount`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
-- `metadata`: JSON NULL
+- `name`: VARCHAR(100) NOT NULL (e.g. "Main Cash Counter Drawer", "HBL Business Account")
+- `type`: VARCHAR(20) NOT NULL DEFAULT 'cash' (INDEXED) (`cash`, `bank`)
+- `bank_name`: VARCHAR(100) NULL
+- `account_number`: VARCHAR(50) NULL
+- `opening_balance`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `current_balance`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `is_active`: BOOLEAN NOT NULL DEFAULT 1
 - `created_at`, `updated_at`: TIMESTAMP NULL
 - `deleted_at`: TIMESTAMP NULL
-- **Indexes**: `UNIQUE(tenant_id, code)`, `INDEX(tenant_id, branch_id)`
+- **Indexes**: `INDEX(tenant_id, type)`
 
----
-
-## 2. Super Admin & Subscription Tables (Phase 03)
-
-### `subscription_plans`
-Defines available subscription plans, pricing tiers, limits, and feature entitlements.
-- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
-- `name`: VARCHAR(100) NOT NULL
-- `slug`: VARCHAR(50) NOT NULL UNIQUE
-- `description`: TEXT NULL
-- `price_monthly`: DECIMAL(12, 2) NOT NULL DEFAULT 0.00
-- `price_yearly`: DECIMAL(12, 2) NOT NULL DEFAULT 0.00
-- `trial_days`: INT NOT NULL DEFAULT 14
-- `grace_days`: INT NOT NULL DEFAULT 3
-- `max_branches`: INT NOT NULL DEFAULT 1 (-1 for unlimited)
-- `max_users`: INT NOT NULL DEFAULT 2 (-1 for unlimited)
-- `max_products`: INT NOT NULL DEFAULT 100 (-1 for unlimited)
-- `features`: JSON NULL
-- `is_active`: BOOLEAN NOT NULL DEFAULT 1 (INDEXED)
-- `is_popular`: BOOLEAN NOT NULL DEFAULT 0
-- `sort_order`: INT NOT NULL DEFAULT 0
-- `created_at`, `updated_at`: TIMESTAMP NULL
-- `deleted_at`: TIMESTAMP NULL
-
-### `subscriptions`
-Tenant subscription contracts tracking billing cycle, dates, and active status.
+### `units`
+Measurement units for wholesale lots and retail counter sales.
 - `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
 - `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
-- `plan_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `subscription_plans(id)` ON DELETE RESTRICT
-- `billing_cycle`: VARCHAR(30) NOT NULL DEFAULT 'monthly'
-- `status`: VARCHAR(30) NOT NULL DEFAULT 'trialing'
-- `trial_starts_at`, `trial_ends_at`, `starts_at`, `ends_at`, `grace_ends_at`: TIMESTAMP NULL
-- `price_paid`: DECIMAL(12, 2) NOT NULL DEFAULT 0.00
-- `currency`: VARCHAR(10) NOT NULL DEFAULT 'PKR'
-- `created_at`, `updated_at`: TIMESTAMP NULL
-- `deleted_at`: TIMESTAMP NULL
-- **Indexes**: `INDEX(tenant_id, status)`
-
-### `subscription_invoices`
-Financial invoices generated for subscription payments and renewals.
-- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
-- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
-- `subscription_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `subscriptions(id)` ON DELETE SET NULL
-- `plan_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `subscription_plans(id)` ON DELETE SET NULL
-- `invoice_number`: VARCHAR(50) NOT NULL UNIQUE (e.g. `INV-2026-0001-ABCD`)
-- `amount`: DECIMAL(12, 2) NOT NULL DEFAULT 0.00
-- `currency`: VARCHAR(10) NOT NULL DEFAULT 'PKR'
-- `payment_method`: VARCHAR(50) NOT NULL DEFAULT 'manual'
-- `payment_status`: VARCHAR(30) NOT NULL DEFAULT 'paid'
-- `transaction_reference`: VARCHAR(100) NULL
-- `paid_at`: TIMESTAMP NULL
-- `notes`: TEXT NULL
-- `created_at`, `updated_at`: TIMESTAMP NULL
-- `deleted_at`: TIMESTAMP NULL
-- **Indexes**: `INDEX(tenant_id, payment_status)`, `INDEX(invoice_number)`
-
----
-
-## 3. Roles, Permissions & Security Tables (Phase 04)
-
-### `roles`
-Stores system-wide template roles (`tenant_id = null`) and tenant-custom roles (`tenant_id NOT NULL`).
-- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
-- `tenant_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
-- `name`: VARCHAR(100) NOT NULL
-- `slug`: VARCHAR(50) NOT NULL
-- `description`: TEXT NULL
+- `name`: VARCHAR(50) NOT NULL (e.g. "Kilogram", "Sack / Bori")
+- `name_ur`: VARCHAR(50) NULL (e.g. "کلوگرام", "بوری")
+- `code`: VARCHAR(20) NOT NULL (e.g. `kg`, `g`, `crate`, `bori`, `dz`, `pc`)
+- `is_fractional`: BOOLEAN NOT NULL DEFAULT 1 (1 allows decimals like 1.75 kg; 0 forces integer counts like 2 crates)
 - `is_system`: BOOLEAN NOT NULL DEFAULT 0
 - `created_at`, `updated_at`: TIMESTAMP NULL
-- **Indexes**: `UNIQUE(tenant_id, slug)`
+- **Indexes**: `UNIQUE(tenant_id, code)`
 
-### `permissions`
-Granular platform capabilities catalog.
+### `categories`
+Master product classifications and operational expense accounts.
 - `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
 - `name`: VARCHAR(100) NOT NULL
-- `slug`: VARCHAR(100) NOT NULL UNIQUE
-- `module`: VARCHAR(50) NOT NULL (INDEXED) (`pos`, `inventory`, `purchases`, `expenses`, `accounting`, `reports`, `users`, `settings`)
+- `name_ur`: VARCHAR(100) NULL
+- `slug`: VARCHAR(100) NOT NULL
+- `type`: VARCHAR(30) NOT NULL DEFAULT 'product' (INDEXED) (`product`, `expense`)
 - `description`: TEXT NULL
+- `is_active`: BOOLEAN NOT NULL DEFAULT 1
 - `created_at`, `updated_at`: TIMESTAMP NULL
-
-### `permission_role`
-Pivot mapping permissions to roles.
-- `role_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `roles(id)` ON DELETE CASCADE
-- `permission_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `permissions(id)` ON DELETE CASCADE
-- **Primary Key**: `[role_id, permission_id]`
-
-### `role_user`
-Pivot table assigning roles to users within a tenant.
-- `user_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `users(id)` ON DELETE CASCADE
-- `role_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `roles(id)` ON DELETE CASCADE
-- `tenant_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
-- `created_at`, `updated_at`: TIMESTAMP NULL
-- **Primary Key**: `[user_id, role_id]`
-- **Indexes**: `INDEX(tenant_id, user_id)`
-
-### `audit_logs`
-Security and operational audit journal.
-- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
-- `tenant_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
-- `user_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `users(id)` ON DELETE SET NULL
-- `action`: VARCHAR(100) NOT NULL (INDEXED) (e.g. `auth.login`, `auth.logout`, `user.created`, `role.updated`)
-- `ip_address`: VARCHAR(45) NULL
-- `user_agent`: TEXT NULL
-- `payload`: JSON NULL
-- `created_at`, `updated_at`: TIMESTAMP NULL
-- **Indexes**: `INDEX(tenant_id, created_at)`
+- **Indexes**: `UNIQUE(tenant_id, type, slug)`
 
 ---
 
-## 4. System & Infrastructure Tables
-- `migrations`, `password_reset_tokens`, `sessions`, `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs`.
+## 3. Super Admin, Roles & Security Tables
+- `subscription_plans`, `subscriptions`, `subscription_invoices`, `roles`, `permissions`, `permission_role`, `role_user`, `audit_logs`.

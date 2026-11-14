@@ -3,6 +3,7 @@
 use App\Http\Middleware\EnsureSuperAdmin;
 use App\Http\Middleware\EnsureTenantActive;
 use App\Http\Middleware\EnsureTenantHasFeature;
+use App\Http\Middleware\EnsureTenantOnboarded;
 use App\Http\Middleware\IdentifyTenant;
 use App\Http\Middleware\PreventCrossTenantAccess;
 use App\Http\Middleware\SetLocale;
@@ -26,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'tenant.active' => EnsureTenantActive::class,
             'tenant.prevent_cross' => PreventCrossTenantAccess::class,
+            'tenant.onboarded' => EnsureTenantOnboarded::class,
             'superadmin' => EnsureSuperAdmin::class,
             'tenant.feature' => EnsureTenantHasFeature::class,
         ]);

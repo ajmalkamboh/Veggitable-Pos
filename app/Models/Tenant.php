@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\TenantStatus;
+use Database\Factories\TenantFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Tenant extends Model
 {
+    /** @use HasFactory<TenantFactory> */
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
@@ -30,6 +32,11 @@ class Tenant extends Model
         'timezone',
         'default_locale',
         'settings',
+        'onboarding_completed',
+        'onboarding_step',
+        'logo_path',
+        'financial_year_start',
+        'business_opening_date',
         'trial_ends_at',
         'subscription_ends_at',
     ];
@@ -39,6 +46,9 @@ class Tenant extends Model
         return [
             'status' => TenantStatus::class,
             'settings' => 'array',
+            'onboarding_completed' => 'boolean',
+            'onboarding_step' => 'integer',
+            'business_opening_date' => 'date',
             'trial_ends_at' => 'datetime',
             'subscription_ends_at' => 'datetime',
         ];
@@ -61,7 +71,7 @@ class Tenant extends Model
     }
 
     /**
-     * All subscriptions for this tenant.
+     * All subscription contracts for this tenant.
      */
     public function subscriptions(): HasMany
     {
@@ -69,7 +79,7 @@ class Tenant extends Model
     }
 
     /**
-     * All invoices for this tenant.
+     * Invoices generated for this tenant.
      */
     public function invoices(): HasMany
     {
@@ -77,7 +87,7 @@ class Tenant extends Model
     }
 
     /**
-     * Branches belonging to this tenant.
+     * Branches/outlets belonging to this tenant.
      */
     public function branches(): HasMany
     {
@@ -101,7 +111,7 @@ class Tenant extends Model
     }
 
     /**
-     * Owner user for this tenant.
+     * The primary owner account of this business.
      */
     public function owner(): HasOne
     {
@@ -109,7 +119,7 @@ class Tenant extends Model
     }
 
     /**
-     * Tenant records.
+     * Tenant isolated records.
      */
     public function records(): HasMany
     {
@@ -117,74 +127,120 @@ class Tenant extends Model
     }
 
     /**
-     * Check if tenant is active.
+     * Financial accounts (Cash & Bank).
      */
-    public function isActive(): bool
+    public function accounts(): HasMany
     {
-        return $this->status === TenantStatus::Active;
+        return $this->hasMany(FinancialAccount::class);
     }
 
     /**
-     * Check if tenant has entitlement to a specific feature.
+     * Master measurement units.
+     */
+    public function units(): HasMany
+    {
+        return $this->hasMany(Unit::class);
+    }
+
+    /**
+     * Master categories.
+     */
+    public function categories(): HasMany
+    {
+        return $this->hasMany(Category::class);
+    }
+
+    /**
+     * Check if tenant is fully onboarded.
+     */
+    public function isOnboarded(): bool
+    {
+        return (bool) $this->onboarding_completed;
+    }
+
+    /**
+     * Calculate onboarding checklist completion percentage (0 - 100%).
+     */
+    public function onboardingProgressPercentage(): int
+    {
+        if ($this->onboarding_completed) {
+            return 100;
+        }
+
+        $points = 0;
+        if (! empty($this->address) && ! empty($this->phone)) {
+            $points += 25;
+        }
+        if ($this->branches()->exists()) {
+            $points += 25;
+        }
+        if ($this->accounts()->exists()) {
+            $points += 25;
+        }
+        if ($this->units()->exists() && $this->categories()->exists()) {
+            $points += 25;
+        }
+
+        return $points;
+    }
+
+    /**
+     * Check if tenant is currently entitled to a specific feature.
      */
     public function hasFeature(string $featureKey): bool
     {
-        // If plan is assigned, check plan features
-        if ($this->plan) {
-            return $this->plan->hasFeature($featureKey);
+        if (! $this->plan) {
+            return false;
         }
 
-        // Default during trial allows standard features
-        return in_array($featureKey, ['pos', 'purchases', 'inventory', 'wastage', 'expenses', 'thermal_printing']);
+        return $this->plan->hasFeature($featureKey);
     }
 
     /**
-     * Check if tenant can create an additional branch based on plan limits.
+     * Verify if tenant can create another branch under their plan limit.
      */
     public function canAddBranch(): bool
     {
         if (! $this->plan) {
-            return true; // Unrestricted trial
+            return false;
         }
 
-        return $this->plan->allowsBranches($this->branches()->count());
+        if ($this->plan->max_branches === -1) {
+            return true;
+        }
+
+        return $this->branches()->count() < $this->plan->max_branches;
     }
 
     /**
-     * Check if tenant can add an additional user based on plan limits.
+     * Verify if tenant can create another user under their plan limit.
      */
     public function canAddUser(): bool
     {
         if (! $this->plan) {
+            return false;
+        }
+
+        if ($this->plan->max_users === -1) {
             return true;
         }
 
-        return $this->plan->allowsUsers($this->users()->count());
+        return $this->users()->count() < $this->plan->max_users;
     }
 
     /**
-     * Check if tenant has an active paid subscription.
+     * Check if tenant subscription or trial has expired.
      */
-    public function isSubscribed(): bool
+    public function isExpired(): bool
     {
-        return $this->currentSubscription?->isActive() ?? false;
-    }
+        if ($this->subscription_ends_at && $this->subscription_ends_at->isPast()) {
+            return true;
+        }
 
-    /**
-     * Check if tenant is on trial.
-     */
-    public function isTrialing(): bool
-    {
-        return $this->trial_ends_at && $this->trial_ends_at->isFuture();
-    }
+        if (! $this->subscription_ends_at && $this->trial_ends_at && $this->trial_ends_at->isPast()) {
+            return true;
+        }
 
-    /**
-     * Get a setting value with fallback default.
-     */
-    public function getSetting(string $key, mixed $default = null): mixed
-    {
-        $settings = $this->settings ?? [];
-
-        return data_get($settings, $key, $default);
+        return false;
     }
 }

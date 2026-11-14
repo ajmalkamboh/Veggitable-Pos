@@ -40,36 +40,35 @@
 
 ## Phase 05: Business Onboarding & Initial Configuration
 **Date**: 2026-11-15
+- 4-Step Onboarding Wizard: `OnboardingController` (`step1`, `step2`, `step3`, `step4`, `finish`).
+- Schema: Onboarding fields on `tenants`, `financial_accounts`, `units`, `categories`.
+- Service: `TenantOnboardingService` provisioning units, categories, and accounts.
+- Middleware: `EnsureTenantOnboarded` gating operational routes until setup is complete.
+- All Phase 05 tests passed.
+
+---
+
+## Phase 06: Urdu/English Localization & RTL Support
+**Date**: 2026-11-15
 
 ### Actions Executed:
-1. **Database Schema & Migrations**:
-   - `add_onboarding_fields_to_tenants_table`: Added `onboarding_completed` (boolean), `onboarding_step` (integer), `logo_path` (string), `financial_year_start` (string), and `business_opening_date` (date) to `tenants`.
-   - `create_financial_accounts_table`: Cash registers and bank accounts per tenant/branch (`type`, `bank_name`, `account_number`, `opening_balance`, `current_balance`, `is_active`).
-   - `create_measurement_units_table`: Units table (`name`, `name_ur`, `code`, `is_fractional`, `is_system`, compound unique on `[tenant_id, code]`).
-   - `create_master_categories_table`: Multi-purpose product & expense categories (`name`, `name_ur`, `slug`, `type`, compound unique on `[tenant_id, type, slug]`).
-2. **Models & Services**:
-   - `App\Models\FinancialAccount`: Uses `BelongsToTenant`.
-   - `App\Models\Unit`: Uses `BelongsToTenant`.
-   - `App\Models\Category`: Uses `BelongsToTenant`.
-   - Updated `App\Models\Tenant`: Added onboarding relationships (`accounts`, `units`, `categories`), and helper methods `isOnboarded()` and `onboardingProgressPercentage()`.
-   - `App\Services\TenantOnboardingService`: Automated provisioning of vegetable/fruit units (kg, g, bori, crate, dz, pc), Mandi product categories, shop expense classifications, cash drawer & bank accounts, and onboarding finalization.
-3. **Middleware**:
-   - `App\Http\Middleware\EnsureTenantOnboarded`: Gating middleware preventing non-onboarded tenants from accessing operational inventory, POS, or financial routes and redirecting them to the onboarding checklist. Super Admin and onboarding routes bypass the gate.
-   - Registered alias `'tenant.onboarded'` in `bootstrap/app.php`.
-4. **Onboarding Controller & Routes**:
-   - `App\Http\Controllers\Tenant\OnboardingController`:
-     - `index`: Overview dashboard with dynamic progress percentage and checklist cards.
-     - `step1` & `updateProfile`: Business profile, address, currency, timezone, logo upload, and fiscal year.
-     - `step2` & `saveBranch`: Headquarters branch establishment.
-     - `step3` & `saveAccounts`: Cash counter drawer and commercial bank account setup with opening balances.
-     - `step4` & `finish`: Pre-seeded master units and categories confirmation and completion trigger.
-5. **UI & Templates**:
-   - `resources/views/tenant/onboarding/index.blade.php`: Overview checklist with progress indicator.
-   - `resources/views/tenant/onboarding/step1.blade.php`: Business Profile form.
-   - `resources/views/tenant/onboarding/step2.blade.php`: Branch outlet setup form.
-   - `resources/views/tenant/onboarding/step3.blade.php`: Financial accounts setup form.
-   - `resources/views/tenant/onboarding/step4.blade.php`: Master units & categories confirmation.
+1. **Bilingual Translation Dictionaries (`lang/en` & `lang/ur`)**:
+   - `common.php`: Extended system-wide terms, actions, and status translations.
+   - `shop.php`: Dedicated vegetable shop vocabulary (vegetables, fruits, mandi auction lots, cashier, weighing, units, net payable, change return, drawer cash).
+   - `onboarding.php`: Complete 4-step wizard bilingual titles, checklist labels, and instruction text.
+   - `validation.php`: Authentic Urdu validation error messages for form submissions.
+2. **Dynamic Locale Management & Middleware Priority**:
+   - `LocaleController`: Persists selected locale in session and automatically updates authenticated user's `preferences['locale']`.
+   - `SetLocale` Middleware: Resolves locale via strict hierarchy: (1) Session, (2) User preference, (3) Active tenant default locale, (4) App fallback.
+3. **RTL / LTR Layouts & Typography**:
+   - `layouts.admin` & `layouts.auth`: Dynamically output `dir="rtl"` / `dir="ltr"` and conditionally include `bootstrap.rtl.min.css` alongside `custom-rtl.css`.
+   - `custom-rtl.css`: Complete styling rules for right-aligned sidebars, mirrored icon spacing, floating header offsets, input group radius corrections, and `Noto Nastaliq Urdu` / `Noto Sans Arabic` typography.
+4. **Bilingual Search Engine**:
+   - `App\Core\Localization\BilingualSearchable`: Trait providing `scopeSearchBilingual` to search across English and Urdu columns (`name`, `name_ur`) seamlessly in MySQL `utf8mb4_unicode_ci`.
+   - Integrated into `Category` and `Unit` models.
+5. **Print & Thermal Receipt**:
+   - `resources/views/reports/thermal-receipt.blade.php`: RTL thermal receipt print template supporting 80mm roll dimensions, Urdu header, line items, and totals.
 6. **Automated Testing Suite**:
-   - `tests/Feature/Phase05BusinessOnboardingTest.php`: 7 test cases covering checklist display, operational route gating via middleware, profile and logo update, branch saving, financial account setup, units & categories seeding, and unlocking operational access upon completion.
-   - Complete test suite: **46 tests passed, 202 assertions, 0 failures**.
+   - `tests/Feature/Phase06LocalizationAndRtlTest.php`: 7 test cases covering locale switching, user preference persistence, tenant default fallback, RTL HTML attributes & CSS inclusion, LTR HTML attributes & CSS inclusion, Urdu dictionary resolution, and bilingual SQL searches.
+   - Complete application test suite: **53 tests passed, 235 assertions, 0 failures**.
    - Code formatted with `vendor/bin/pint --format agent`.

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Core\Localization\BilingualSearchable;
 use App\Core\MultiTenancy\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Category extends Model
 {
-    use BelongsToTenant, HasFactory;
+    use BelongsToTenant, BilingualSearchable, HasFactory;
 
     protected $fillable = [
         'tenant_id',

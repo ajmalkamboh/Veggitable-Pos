@@ -25,32 +25,46 @@
       </li>
 
       <!-- SaaS Central Platform Section -->
-      <li class="nav-heading"><span>SaaS Platform</span></li>
+      <li class="nav-heading"><span>Platform Super Admin</span></li>
 
-      <li class="nav-item has-submenu">
-        <a class="nav-link" href="#" aria-expanded="false" data-tooltip="SaaS Management">
+      <li class="nav-item">
+        <a class="nav-link {{ request()->routeIs('superadmin.dashboard') ? 'active' : '' }}" href="{{ route('superadmin.dashboard') }}" data-tooltip="Admin Dashboard">
+          <i class="ph-duotone ph-gauge"></i>
+          <span>Super Admin Dashboard</span>
+        </a>
+      </li>
+
+      <li class="nav-item has-submenu {{ request()->routeIs('superadmin.tenants.*') || request()->routeIs('tenant.*') ? 'show' : '' }}">
+        <a class="nav-link {{ request()->routeIs('superadmin.tenants.*') || request()->routeIs('tenant.*') ? 'active' : '' }}" href="#" aria-expanded="false" data-tooltip="Businesses">
           <i class="ph-duotone ph-buildings"></i>
-          <span>Tenants & Businesses</span>
+          <span>Businesses & Tenants</span>
           <i class="ph-duotone ph-caret-down nav-arrow"></i>
         </a>
         <ul class="nav-submenu">
+          <li><a class="nav-link {{ request()->routeIs('superadmin.tenants.index') ? 'active' : '' }}" href="{{ route('superadmin.tenants.index') }}">Manage Businesses</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.register.create') ? 'active' : '' }}" href="{{ route('tenant.register.create') }}">Register New Business</a></li>
           <li><a class="nav-link {{ request()->routeIs('tenant.records.index') ? 'active' : '' }}" href="{{ route('tenant.records.index') }}">Tenant Data & Records</a></li>
-          <li><a class="nav-link {{ request()->routeIs('tenant.register.create') ? 'active' : '' }}" href="{{ route('tenant.register.create') }}">Register New Tenant</a></li>
-          <li><a class="nav-link" href="#">Tenant Activity</a></li>
         </ul>
       </li>
 
-      <li class="nav-item has-submenu">
-        <a class="nav-link" href="#" aria-expanded="false" data-tooltip="Subscriptions">
+      <li class="nav-item has-submenu {{ request()->routeIs('superadmin.plans.*') || request()->routeIs('superadmin.subscriptions.*') ? 'show' : '' }}">
+        <a class="nav-link {{ request()->routeIs('superadmin.plans.*') || request()->routeIs('superadmin.subscriptions.*') ? 'active' : '' }}" href="#" aria-expanded="false" data-tooltip="Subscriptions">
           <i class="ph-duotone ph-credit-card"></i>
-          <span>Subscription Plans</span>
+          <span>Subscriptions & Billing</span>
           <i class="ph-duotone ph-caret-down nav-arrow"></i>
         </a>
         <ul class="nav-submenu">
-          <li><a class="nav-link" href="#">Plans & Pricing</a></li>
-          <li><a class="nav-link" href="#">Active Subscriptions</a></li>
-          <li><a class="nav-link" href="#">Payment History</a></li>
+          <li><a class="nav-link {{ request()->routeIs('superadmin.plans.*') ? 'active' : '' }}" href="{{ route('superadmin.plans.index') }}">Subscription Plans</a></li>
+          <li><a class="nav-link {{ request()->routeIs('superadmin.subscriptions.payments') || request()->routeIs('superadmin.subscriptions.show') ? 'active' : '' }}" href="{{ route('superadmin.subscriptions.payments') }}">Payments & Invoices</a></li>
+          <li><a class="nav-link {{ request()->routeIs('superadmin.subscriptions.create') ? 'active' : '' }}" href="{{ route('superadmin.subscriptions.create') }}">Record Payment</a></li>
         </ul>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link {{ request()->routeIs('superadmin.reports.*') ? 'active' : '' }}" href="{{ route('superadmin.reports.index') }}" data-tooltip="Platform Reports">
+          <i class="ph-duotone ph-chart-line-up"></i>
+          <span>Platform Reports</span>
+        </a>
       </li>
 
       <!-- Tenant Operations Section -->

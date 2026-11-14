@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\TenantStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -19,6 +20,8 @@ class Tenant extends Model
         'domain',
         'subdomain',
         'status',
+        'plan_id',
+        'current_subscription_id',
         'email',
         'phone',
         'address',
@@ -39,6 +42,38 @@ class Tenant extends Model
             'trial_ends_at' => 'datetime',
             'subscription_ends_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Current subscription plan assigned to this tenant.
+     */
+    public function plan(): BelongsTo
+    {
+        return $this->belongsTo(SubscriptionPlan::class, 'plan_id');
+    }
+
+    /**
+     * Currently active subscription record.
+     */
+    public function currentSubscription(): BelongsTo
+    {
+        return $this->belongsTo(Subscription::class, 'current_subscription_id');
+    }
+
+    /**
+     * All subscriptions for this tenant.
+     */
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    /**
+     * All invoices for this tenant.
+     */
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(SubscriptionInvoice::class);
     }
 
     /**
@@ -87,6 +122,60 @@ class Tenant extends Model
     public function isActive(): bool
     {
         return $this->status === TenantStatus::Active;
+    }
+
+    /**
+     * Check if tenant has entitlement to a specific feature.
+     */
+    public function hasFeature(string $featureKey): bool
+    {
+        // If plan is assigned, check plan features
+        if ($this->plan) {
+            return $this->plan->hasFeature($featureKey);
+        }
+
+        // Default during trial allows standard features
+        return in_array($featureKey, ['pos', 'purchases', 'inventory', 'wastage', 'expenses', 'thermal_printing']);
+    }
+
+    /**
+     * Check if tenant can create an additional branch based on plan limits.
+     */
+    public function canAddBranch(): bool
+    {
+        if (! $this->plan) {
+            return true; // Unrestricted trial
+        }
+
+        return $this->plan->allowsBranches($this->branches()->count());
+    }
+
+    /**
+     * Check if tenant can add an additional user based on plan limits.
+     */
+    public function canAddUser(): bool
+    {
+        if (! $this->plan) {
+            return true;
+        }
+
+        return $this->plan->allowsUsers($this->users()->count());
+    }
+
+    /**
+     * Check if tenant has an active paid subscription.
+     */
+    public function isSubscribed(): bool
+    {
+        return $this->currentSubscription?->isActive() ?? false;
+    }
+
+    /**
+     * Check if tenant is on trial.
+     */
+    public function isTrialing(): bool
+    {
+        return $this->trial_ends_at && $this->trial_ends_at->isFuture();
     }
 
     /**

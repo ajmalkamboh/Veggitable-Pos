@@ -2,11 +2,14 @@
 
 namespace Database\Seeders;
 
+use App\Enums\BillingCycle;
 use App\Enums\TenantStatus;
 use App\Models\Branch;
+use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Models\TenantRecord;
 use App\Models\User;
+use App\Services\SubscriptionService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -17,6 +20,10 @@ class TenantSeeder extends Seeder
      */
     public function run(): void
     {
+        $subscriptionService = app(SubscriptionService::class);
+        $standardPlan = SubscriptionPlan::where('slug', 'standard')->first();
+        $basicPlan = SubscriptionPlan::where('slug', 'basic')->first();
+
         // 1. Platform Super Admin (No tenant attachment)
         User::firstOrCreate(
             ['email' => 'admin@veggitable.test'],
@@ -45,6 +52,19 @@ class TenantSeeder extends Seeder
                 'subscription_ends_at' => now()->addYear(),
             ]
         );
+
+        if ($standardPlan && ! $tenantA->plan_id) {
+            $subscriptionService->assignPlan(
+                tenant: $tenantA,
+                plan: $standardPlan,
+                cycle: BillingCycle::Monthly,
+                amountPaid: 3500.00,
+                paymentMethod: 'bank_transfer',
+                reference: 'INIT-ALMADINA-01',
+                notes: 'Initial standard plan subscription for Al-Madina Fresh Vegetables.'
+            );
+            $tenantA->refresh();
+        }
 
         $branchA1 = Branch::firstOrCreate(
             ['tenant_id' => $tenantA->id, 'code' => 'HQ-01'],
@@ -100,6 +120,19 @@ class TenantSeeder extends Seeder
                 'subscription_ends_at' => now()->addYear(),
             ]
         );
+
+        if ($basicPlan && ! $tenantB->plan_id) {
+            $subscriptionService->assignPlan(
+                tenant: $tenantB,
+                plan: $basicPlan,
+                cycle: BillingCycle::Monthly,
+                amountPaid: 1500.00,
+                paymentMethod: 'cash',
+                reference: 'INIT-BISMILLAH-01',
+                notes: 'Initial basic plan subscription for Bismillah Green Grocers.'
+            );
+            $tenantB->refresh();
+        }
 
         $branchB1 = Branch::firstOrCreate(
             ['tenant_id' => $tenantB->id, 'code' => 'HQ-01'], // Note: Same code HQ-01 as Tenant A, demonstrating multi-tenant compound unique indexes!

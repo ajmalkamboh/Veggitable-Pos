@@ -20,3 +20,4 @@
 - Keep database keys, slugs, and system identifiers in English.
 - Use `app()->getLocale() === 'ur'` or CSS attribute `html[dir="rtl"]` for direction-aware styles.
 - Preserve numerical digits and currency ISO standards appropriately across translations.
+

@@ -2,11 +2,14 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Session;
 use Tests\TestCase;
 
 class Phase01TechnicalArchitectureTest extends TestCase
 {
+    use RefreshDatabase;
+
     /**
      * Test that the technical foundation dashboard loads successfully.
      */

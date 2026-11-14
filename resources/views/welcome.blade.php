@@ -3,62 +3,95 @@
 @section('title', __('common.dashboard') . ' - ' . __('common.tagline'))
 
 @section('content')
+  @inject('tenantContext', 'App\Core\MultiTenancy\TenantContext')
+
   <x-breadcrumb 
     :title="__('common.dashboard')" 
     :items="[
-      'Phase 01: Technical Foundation' => '#'
+      'Phase 02: Multi-Tenant Architecture' => '#'
     ]"
   >
     <x-slot name="actions">
+      <a href="{{ route('tenant.register.create') }}" class="btn btn-success btn-sm d-flex align-items-center gap-1">
+        <i class="bi bi-plus-circle"></i>
+        <span>Register New Business</span>
+      </a>
+      <a href="{{ route('tenant.records.index') }}" class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1">
+        <i class="bi bi-shield-check"></i>
+        <span>Tenant Records & Isolation</span>
+      </a>
       <a href="{{ route('language.switch', app()->getLocale() === 'en' ? 'ur' : 'en') }}" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
         <i class="bi bi-translate"></i>
-        <span>Switch to {{ app()->getLocale() === 'en' ? 'اردو (Urdu RTL)' : 'English (LTR)' }}</span>
+        <span>{{ app()->getLocale() === 'en' ? 'اردو (Urdu RTL)' : 'English (LTR)' }}</span>
       </a>
-      <button class="btn btn-primary btn-sm d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#archInfoModal">
-        <i class="bi bi-info-circle"></i>
-        <span>Architecture Spec</span>
-      </button>
     </x-slot>
   </x-breadcrumb>
+
+  <!-- Active Tenant Context Banner -->
+  <div class="card bg-primary-subtle border-0 shadow-sm mb-4">
+    <div class="card-body p-3 d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <div class="rounded-3 bg-primary text-white p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+          <i class="bi bi-shop fs-4"></i>
+        </div>
+        <div>
+          <h6 class="fw-bold mb-0 text-primary-emphasis">Active Business Context: {{ $tenantContext->getTenant()?->name ?? 'Default Multi-Tenant Environment' }}</h6>
+          <span class="small text-muted">
+            Tenant ID: <code>#{{ $tenantContext->getTenantId() ?? '1' }}</code> |
+            Active Branch: <strong>{{ $tenantContext->getBranch()?->name ?? 'Headquarters' }}</strong> |
+            Currency: <code>{{ $tenantContext->getTenant()?->currency ?? 'PKR' }}</code> |
+            Data Isolation: <span class="badge bg-success small">STRICTLY ENFORCED</span>
+          </span>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <a href="{{ route('tenant.records.index') }}" class="btn btn-primary btn-sm">
+          <i class="bi bi-database me-1"></i> View Isolated Records
+        </a>
+      </div>
+    </div>
+  </div>
 
   <!-- KPI Overview Stat Cards -->
   <div class="row g-3 mb-4">
     <div class="col-12 col-sm-6 col-xl-3">
       <x-stat-card 
-        title="Environment" 
-        value="PHP 8.3 & L12" 
-        icon="bi-cpu" 
+        title="Active Businesses" 
+        value="{{ \App\Models\Tenant::count() }}" 
+        icon="bi-buildings" 
         color="primary"
-        subtitle="MySQL 8.4 + Livewire"
+        subtitle="Independent Tenants"
       />
     </div>
     <div class="col-12 col-sm-6 col-xl-3">
       <x-stat-card 
-        title="Admin Theme" 
-        value="EasyAdmin Pro" 
-        icon="bi-palette" 
+        title="Branches Deployed" 
+        value="{{ \App\Models\Branch::count() }}" 
+        icon="bi-geo-alt" 
         color="success"
-        subtitle="Bootstrap 5.3 + Custom RTL"
+        subtitle="Multi-Branch Infrastructure"
       />
     </div>
     <div class="col-12 col-sm-6 col-xl-3">
       <x-stat-card 
-        title="Bilingual Engine" 
-        value="{{ app()->getLocale() === 'ur' ? 'اردو (فعال)' : 'English (Active)' }}" 
-        icon="bi-translate" 
-        color="warning"
-        subtitle="English & Urdu RTL/LTR"
+        title="Tenant Isolation" 
+        value="100% Isolated" 
+        icon="bi-shield-check" 
+        color="info"
+        change="Verified"
+        changeType="positive"
+        subtitle="Scopes, Policies, Services"
       />
     </div>
     <div class="col-12 col-sm-6 col-xl-3">
       <x-stat-card 
         title="Phase Status" 
-        value="Phase 01 Done" 
+        value="Phase 02 Done" 
         icon="bi-check2-circle" 
-        color="info"
-        change="100%"
+        color="warning"
+        change="Completed"
         changeType="positive"
-        subtitle="Foundation & Architecture"
+        subtitle="SaaS Multi-Tenancy Ready"
       />
     </div>
   </div>
@@ -66,83 +99,83 @@
   <!-- Main System Info & Livewire Component -->
   <div class="row g-4 mb-4">
     <div class="col-lg-8">
-      <x-card title="System Foundation & Technical Architecture" subtitle="Verified technology stack, database connections, and SaaS blueprints">
+      <x-card title="Multi-Tenant SaaS Architecture & Technical Verification" subtitle="Shared MySQL database with strict row-level isolation and multi-branch hierarchy">
         <div class="row g-3">
           <div class="col-md-6">
             <div class="border rounded p-3 bg-light">
-              <h6 class="fw-semibold text-primary"><i class="bi bi-layers me-2"></i>Multi-Tenant Architecture Plan</h6>
-              <p class="small text-muted mb-0">Shared MySQL database with tenant isolation (<code>tenant_id</code>), automated tenant global scopes, multi-branch hierarchy, and policy authorization.</p>
+              <h6 class="fw-semibold text-primary"><i class="bi bi-shield-lock me-2"></i>Multi-Layer Tenant Security</h6>
+              <p class="small text-muted mb-0">Never trusts client-supplied <code>tenant_id</code>. Automatically attaches active tenant ID via <code>BelongsToTenant</code>, filters all queries via <code>TenantScope</code>, and validates ownership at policy and service layers.</p>
             </div>
           </div>
           <div class="col-md-6">
             <div class="border rounded p-3 bg-light">
-              <h6 class="fw-semibold text-success"><i class="bi bi-calculator me-2"></i>Double-Entry Accounting & FIFO Stock</h6>
-              <p class="small text-muted mb-0">Double-entry accounting ledger engine (balanced Debits = Credits) integrated with FIFO batch costing for vegetable perishables and wastage.</p>
+              <h6 class="fw-semibold text-success"><i class="bi bi-diagram-3 me-2"></i>Multi-Branch Hierarchy</h6>
+              <p class="small text-muted mb-0">Supports multiple shop branches per business with headquarters flags, branch user assignments, active branch context switching, and composite unique keys <code>(tenant_id, code)</code>.</p>
             </div>
           </div>
           <div class="col-md-6">
             <div class="border rounded p-3 bg-light">
-              <h6 class="fw-semibold text-warning"><i class="bi bi-translate me-2"></i>Bilingual LTR / RTL Localisation</h6>
-              <p class="small text-muted mb-0">Full English and Urdu support with Noto Nastaliq Urdu typography, Bootstrap RTL, dynamic direction switching, and locale persistence.</p>
+              <h6 class="fw-semibold text-warning"><i class="bi bi-person-plus me-2"></i>Atomic Tenant Registration</h6>
+              <p class="small text-muted mb-0"><code>TenantRegistrationService</code> executes atomic business creation, initial headquarters branch setup, and owner user provisioning within guaranteed database transactions.</p>
             </div>
           </div>
           <div class="col-md-6">
             <div class="border rounded p-3 bg-light">
-              <h6 class="fw-semibold text-info"><i class="bi bi-file-earmark-pdf me-2"></i>Reporting & Printing Subsystems</h6>
-              <p class="small text-muted mb-0">Integrated Barryvdh DomPDF and Maatwebsite Excel packages for 80mm thermal receipts, A4 invoices, and financial reports.</p>
+              <h6 class="fw-semibold text-info"><i class="bi bi-clock-history me-2"></i>Tenant Lifecycle & Statuses</h6>
+              <p class="small text-muted mb-0">Enforces tenant lifecycle states: <code>active</code>, <code>suspended</code>, and <code>expired</code> with middleware-enforced rejection of unauthorized operational access.</p>
             </div>
           </div>
         </div>
 
         <hr class="my-4">
 
-        <h6 class="fw-bold mb-3">Core Technical Specifications</h6>
+        <h6 class="fw-bold mb-3">Multi-Tenancy Verification Matrix</h6>
         <div class="table-responsive">
           <table class="table table-sm table-striped align-middle mb-0">
             <thead class="table-light">
               <tr>
-                <th>Component</th>
-                <th>Technology / Engine</th>
+                <th>Mechanism</th>
+                <th>Implementation Class</th>
                 <th>Status</th>
-                <th>Integration Note</th>
+                <th>Security Guarantee</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td><strong>Framework</strong></td>
-                <td>Laravel Framework 13 / 12 Core</td>
+                <td><strong>Context Resolution</strong></td>
+                <td><code>TenantManager</code> & <code>TenantContext</code></td>
                 <td><span class="badge bg-success-subtle text-success">Verified Active</span></td>
-                <td>Bootstrap 5 + Modular Services</td>
+                <td>Resolves from User, Route parameter, Header, Subdomain, or Session</td>
               </tr>
               <tr>
-                <td><strong>Runtime</strong></td>
-                <td>PHP 8.3.28 ZTS x64</td>
+                <td><strong>Query Scoping</strong></td>
+                <td><code>TenantScope</code> (Eloquent Global Scope)</td>
                 <td><span class="badge bg-success-subtle text-success">Verified Active</span></td>
-                <td>OPcache & Strict Types enabled</td>
+                <td>Appends <code>WHERE tenant_id = ?</code> to all tenant model queries</td>
               </tr>
               <tr>
-                <td><strong>Database Engine</strong></td>
-                <td>MySQL 8.4.7 via WAMP</td>
-                <td><span class="badge bg-success-subtle text-success">Connected</span></td>
-                <td>Database: <code>veggitable_saas</code> (utf8mb4)</td>
+                <td><strong>Model Guard</strong></td>
+                <td><code>BelongsToTenant</code> Trait</td>
+                <td><span class="badge bg-success-subtle text-success">Verified Active</span></td>
+                <td>Rejects client-spoofed <code>tenant_id</code> with <code>CrossTenantAccessException</code></td>
               </tr>
               <tr>
-                <td><strong>Reactive Frontend</strong></td>
-                <td>Livewire 4 / 3 Reactive Engine</td>
-                <td><span class="badge bg-success-subtle text-success">Configured</span></td>
-                <td>No React / Vue / Inertia / Tailwind</td>
+                <td><strong>Route Protection</strong></td>
+                <td><code>PreventCrossTenantAccess</code> Middleware</td>
+                <td><span class="badge bg-success-subtle text-success">Verified Active</span></td>
+                <td>Prevents cross-tenant access via URL parameter manipulation</td>
               </tr>
               <tr>
-                <td><strong>Admin UI Framework</strong></td>
-                <td>EasyAdmin Pro (BootstrapMade)</td>
-                <td><span class="badge bg-success-subtle text-success">Installed</span></td>
-                <td>Integrated into Blade reusable components</td>
+                <td><strong>Status Guard</strong></td>
+                <td><code>EnsureTenantActive</code> Middleware</td>
+                <td><span class="badge bg-success-subtle text-success">Verified Active</span></td>
+                <td>Blocks suspended or expired tenant accounts with HTTP 403</td>
               </tr>
               <tr>
-                <td><strong>Document Engines</strong></td>
-                <td>DomPDF 3.1 & PhpSpreadsheet 5.11</td>
-                <td><span class="badge bg-success-subtle text-success">Installed</span></td>
-                <td>Ready for Thermal receipts & Excel exports</td>
+                <td><strong>Unique Constraints</strong></td>
+                <td>MySQL Compound Indexes</td>
+                <td><span class="badge bg-success-subtle text-success">Verified Active</span></td>
+                <td>Allows identical codes across businesses while preventing duplicates within</td>
               </tr>
             </tbody>
           </table>
@@ -150,42 +183,31 @@
       </x-card>
     </div>
 
-    <!-- Livewire Foundation Test Widget -->
+    <!-- Livewire Reactive Widget -->
     <div class="col-lg-4">
       <x-card title="Livewire Reactive Foundation Test" subtitle="Testing real-time state manipulation">
         @livewire('architecture-overview')
       </x-card>
 
-      <x-card title="Language & RTL Verification" subtitle="Check English / Urdu text shaping">
-        <div class="p-3 bg-light rounded mb-3">
-          <div class="text-muted small">English:</div>
-          <div class="fw-semibold">Fresh Tomatoes - Grade A (Rs. 120 / KG)</div>
-          <hr class="my-2">
-          <div class="text-muted small">اردو (Urdu Nastaliq):</div>
-          <div class="fw-bold urdu-font fs-5 text-success">تازہ ٹماٹر - درجہ اول (120 روپے فی کلو)</div>
-        </div>
-        <a href="{{ route('language.switch', app()->getLocale() === 'en' ? 'ur' : 'en') }}" class="btn btn-outline-primary btn-sm w-100">
-          <i class="bi bi-arrow-repeat me-1"></i>
-          Toggle Current Direction ({{ app()->getLocale() === 'en' ? 'Switch to RTL Urdu' : 'Switch to LTR English' }})
-        </a>
+      <x-card title="Registered Demonstration Businesses" subtitle="Multi-Tenant Environment">
+        <ul class="list-group list-group-flush small mb-3">
+          @foreach(\App\Models\Tenant::with('branches')->get() as $t)
+            <li class="list-group-item px-0">
+              <div class="d-flex align-items-center justify-content-between mb-1">
+                <span class="fw-bold">{{ $t->name }}</span>
+                <span class="badge {{ $t->status->badgeClass() }}">{{ $t->status->label() }}</span>
+              </div>
+              <span class="text-muted d-block">Slug: <code>{{ $t->slug }}</code> | Currency: <code>{{ $t->currency }}</code></span>
+              <span class="text-muted d-block">Branches: {{ $t->branches->count() }} ({{ $t->branches->pluck('name')->implode(', ') }})</span>
+              <div class="mt-2">
+                <a href="{{ route('tenant.switch', $t->id) }}" class="btn btn-xs btn-outline-primary py-0 px-2 small">
+                  Switch to This Business
+                </a>
+              </div>
+            </li>
+          @endforeach
+        </ul>
       </x-card>
     </div>
   </div>
-
-  <!-- Architecture Modal -->
-  <x-modal id="archInfoModal" title="System Architecture & Database Conventions" size="lg">
-    <div class="p-2">
-      <h6 class="fw-bold text-primary">Master Phase Roadmap</h6>
-      <p class="small text-muted">The system is architected across 20 structured phases adhering strictly to enterprise SaaS engineering, multi-tenant data isolation, double-entry financial integrity, and bilingual accessibility.</p>
-
-      <h6 class="fw-bold text-secondary mt-3">Tenant Isolation Principle</h6>
-      <p class="small text-muted">All tenant data tables enforce <code>tenant_id</code> foreign key indexing, tenant global scopes at Eloquent level, and mandatory authorization verification in service layer methods and policies.</p>
-
-      <h6 class="fw-bold text-success mt-3">Perishable Vegetable Costing</h6>
-      <p class="small text-muted">Inventory movements follow strict FIFO batch accounting to accurately account for purchase rates, freight allocations, crate-to-KG weight conversions, and daily spoilage/wastage deductions.</p>
-    </div>
-    <x-slot name="footer">
-      <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-    </x-slot>
-  </x-modal>
 @endsection

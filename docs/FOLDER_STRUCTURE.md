@@ -45,3 +45,4 @@ public/
     ├── js/                    # main.js, theme.js
     └── vendor/                # bootstrap, icons, simple-datatables, etc.
 ```
+

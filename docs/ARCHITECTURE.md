@@ -67,3 +67,4 @@ Veggitable SaaS is an international-standard, multi-tenant Software-as-a-Service
 | Model & ORM | `TenantScope` auto-applied to all Tenant-owned models | Excludes cross-tenant queries at SQL generation |
 | Service & Business Logic | Explicit `tenant_id` verification against active context | Disallows spoofed client parameters |
 | Database Indexing | Compound unique keys: `UNIQUE(tenant_id, code)` | Prevents cross-tenant identifier collision |
+

@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Middleware\EnsureTenantActive;
+use App\Http\Middleware\IdentifyTenant;
+use App\Http\Middleware\PreventCrossTenantAccess;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -15,6 +18,12 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
             SetLocale::class,
+            IdentifyTenant::class,
+        ]);
+
+        $middleware->alias([
+            'tenant.active' => EnsureTenantActive::class,
+            'tenant.prevent_cross' => PreventCrossTenantAccess::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

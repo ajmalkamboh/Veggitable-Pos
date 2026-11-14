@@ -22,6 +22,39 @@
   <!-- Header Right -->
   <div class="header-right">
     <div class="header-actions-desktop">
+      <!-- Active Business Context -->
+      @inject('tenantContext', 'App\Core\MultiTenancy\TenantContext')
+      <div class="header-action dropdown">
+        <button class="dropdown-toggle btn btn-sm btn-outline-primary d-flex align-items-center gap-1" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="bi bi-shop"></i>
+          <span class="d-none d-md-inline">{{ $tenantContext->getTenant()?->name ?? 'Select Business' }}</span>
+        </button>
+        @php
+          $availableTenants = \Illuminate\Support\Facades\Schema::hasTable('tenants')
+              ? \App\Models\Tenant::where('status', 'active')->get()
+              : collect();
+        @endphp
+        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+          <li class="dropdown-header small text-muted">Switch Business Context</li>
+          @foreach($availableTenants as $t)
+            <li>
+              <a class="dropdown-item d-flex align-items-center justify-content-between {{ $tenantContext->getTenantId() === $t->id ? 'active' : '' }}" href="{{ route('tenant.switch', $t->id) }}">
+                <span>{{ $t->name }}</span>
+                @if($tenantContext->getTenantId() === $t->id)
+                  <i class="bi bi-check-lg text-success"></i>
+                @endif
+              </a>
+            </li>
+          @endforeach
+          <li><hr class="dropdown-divider"></li>
+          <li>
+            <a class="dropdown-item text-primary" href="{{ route('tenant.register.create') }}">
+              <i class="bi bi-plus-circle me-1"></i> Register New Business
+            </a>
+          </li>
+        </ul>
+      </div>
+
       <!-- Language Switcher -->
       <div class="header-action dropdown">
         <button class="dropdown-toggle btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" data-bs-toggle="dropdown" aria-expanded="false">
@@ -111,3 +144,4 @@
     </div>
   </div>
 </header>
+

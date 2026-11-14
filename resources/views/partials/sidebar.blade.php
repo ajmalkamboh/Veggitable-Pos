@@ -34,8 +34,8 @@
           <i class="ph-duotone ph-caret-down nav-arrow"></i>
         </a>
         <ul class="nav-submenu">
-          <li><a class="nav-link" href="#">All Businesses</a></li>
-          <li><a class="nav-link" href="#">Register New Tenant</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.records.index') ? 'active' : '' }}" href="{{ route('tenant.records.index') }}">Tenant Data & Records</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.register.create') ? 'active' : '' }}" href="{{ route('tenant.register.create') }}">Register New Tenant</a></li>
           <li><a class="nav-link" href="#">Tenant Activity</a></li>
         </ul>
       </li>
@@ -151,3 +151,4 @@
     </ul>
   </nav>
 </aside>
+

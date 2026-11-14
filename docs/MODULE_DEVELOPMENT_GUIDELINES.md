@@ -27,3 +27,4 @@ For every phase and feature module in the Veggitable SaaS system, adhere to the 
 ### Step 5: Automated Testing
 - Create PHPUnit Feature test using `php artisan make:test --phpunit <ModuleName>Test`.
 - Test positive path, validation failures, tenant data isolation (Tenant A cannot see Tenant B), and translation rendering.
+

@@ -7,59 +7,93 @@
 
 ---
 
-## 1. Current Tables (Phase 01)
+## 1. Tables Implemented (Phases 01 & 02)
 
-### `migrations`
-Standard Laravel migration tracking table.
+### `tenants`
+The core business entity for the SaaS platform.
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `name`: VARCHAR(255) NOT NULL
+- `slug`: VARCHAR(100) NOT NULL UNIQUE
+- `domain`: VARCHAR(255) NULL UNIQUE (for custom domains)
+- `subdomain`: VARCHAR(100) NULL UNIQUE (for subdomain-based tenant routing)
+- `status`: VARCHAR(30) NOT NULL DEFAULT 'active' (INDEXED) (`active`, `suspended`, `expired`)
+- `email`: VARCHAR(255) NULL
+- `phone`: VARCHAR(50) NULL
+- `address`: VARCHAR(255) NULL
+- `city`: VARCHAR(100) NULL
+- `currency`: VARCHAR(10) NOT NULL DEFAULT 'PKR'
+- `timezone`: VARCHAR(50) NOT NULL DEFAULT 'Asia/Karachi'
+- `default_locale`: VARCHAR(10) NOT NULL DEFAULT 'en'
+- `settings`: JSON NULL (Fiscal year start, receipt formatting, tax settings)
+- `trial_ends_at`: TIMESTAMP NULL
+- `subscription_ends_at`: TIMESTAMP NULL
+- `created_at`, `updated_at`: TIMESTAMP NULL
+- `deleted_at`: TIMESTAMP NULL (Soft Deletes)
+
+### `branches`
+Multiple branch outlets per tenant (shops, subzi mandi counters, cold storage warehouses).
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `name`: VARCHAR(255) NOT NULL
+- `code`: VARCHAR(50) NOT NULL (e.g. `HQ-01`, `BR-02`)
+- `phone`: VARCHAR(50) NULL
+- `email`: VARCHAR(255) NULL
+- `address`: TEXT NULL
+- `city`: VARCHAR(100) NULL
+- `is_headquarters`: BOOLEAN NOT NULL DEFAULT 0
+- `is_active`: BOOLEAN NOT NULL DEFAULT 1 (INDEXED)
+- `settings`: JSON NULL
+- `created_at`, `updated_at`: TIMESTAMP NULL
+- `deleted_at`: TIMESTAMP NULL
+- **Indexes**:
+  - `UNIQUE(tenant_id, code)`: Ensures unique branch code within a tenant while permitting same code across different tenants.
+  - `INDEX(tenant_id, is_active)`
 
 ### `users`
-Foundation user authentication table (will be enhanced with `tenant_id` and role attributes in Phase 02 and 04).
+System users, platform administrators, tenant owners, and branch staff.
 - `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `tenant_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE (NULL for Platform Super Admin)
+- `current_branch_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `branches(id)` ON DELETE SET NULL
 - `name`: VARCHAR(255) NOT NULL
 - `email`: VARCHAR(255) NOT NULL UNIQUE
 - `email_verified_at`: TIMESTAMP NULL
 - `password`: VARCHAR(255) NOT NULL
+- `is_super_admin`: BOOLEAN NOT NULL DEFAULT 0
+- `is_tenant_owner`: BOOLEAN NOT NULL DEFAULT 0
+- `status`: VARCHAR(30) NOT NULL DEFAULT 'active'
+- `phone`: VARCHAR(50) NULL
+- `preferences`: JSON NULL
 - `remember_token`: VARCHAR(100) NULL
-- `created_at`: TIMESTAMP NULL
-- `updated_at`: TIMESTAMP NULL
+- `created_at`, `updated_at`: TIMESTAMP NULL
+- **Indexes**: `INDEX(tenant_id, status)`
 
-### `password_reset_tokens`
-- `email`: VARCHAR(255) PRIMARY KEY
-- `token`: VARCHAR(255) NOT NULL
-- `created_at`: TIMESTAMP NULL
+### `branch_user`
+Pivot table defining user branch assignments with default branch indicators.
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `tenant_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `branch_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `branches(id)` ON DELETE CASCADE
+- `user_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `users(id)` ON DELETE CASCADE
+- `is_default`: BOOLEAN NOT NULL DEFAULT 0
+- `created_at`, `updated_at`: TIMESTAMP NULL
+- **Indexes**:
+  - `UNIQUE(branch_id, user_id)`
+  - `INDEX(tenant_id, user_id)`
 
-### `sessions`
-Database-driven HTTP session storage.
-- `id`: VARCHAR(255) PRIMARY KEY
-- `user_id`: BIGINT UNSIGNED NULL (INDEXED)
-- `ip_address`: VARCHAR(45) NULL
-- `user_agent`: TEXT NULL
-- `payload`: LONGTEXT NOT NULL
-- `last_activity`: INT NOT NULL (INDEXED)
+### `tenant_records`
+Sample tenant-owned business entity demonstrating strict data isolation.
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `branch_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `branches(id)` ON DELETE SET NULL
+- `name`: VARCHAR(255) NOT NULL
+- `code`: VARCHAR(50) NOT NULL
+- `description`: TEXT NULL
+- `amount`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `metadata`: JSON NULL
+- `created_at`, `updated_at`: TIMESTAMP NULL
+- `deleted_at`: TIMESTAMP NULL
+- **Indexes**:
+  - `UNIQUE(tenant_id, code)`
+  - `INDEX(tenant_id, branch_id)`
 
-### `cache` & `cache_locks`
-Database cache store tables.
-
-### `jobs`, `job_batches`, `failed_jobs`
-Database queue workers and asynchronous jobs tables.
-
----
-
-## 2. Planned Schema Architecture (Phase 02+)
-
-### Multi-Tenancy Core:
-- `tenants`: Primary SaaS tenant record (slug, business name, domain, status, plan_id, trial_ends_at, settings).
-- `branches`: Branches per tenant (tenant_id, name, code, phone, address, is_headquarters, is_active).
-- `subscription_plans`: Platform subscription tiers (code, name, price, billing_interval, limits_json, features_json).
-- `tenant_subscriptions`: Tenant billing cycles, invoices, and payments.
-
-### Perishable Vegetables & Products:
-- `product_categories`: Category classification (tenant_id, name_en, name_ur, code).
-- `products`: Product master (tenant_id, category_id, name_en, name_ur, code, barcode, stock_unit_id, min_stock).
-- `unit_conversions`: Product-specific conversion definitions (e.g., 1 Crate = 20.000 KG).
-- `inventory_batches`: Perishable batch tracking with FIFO cost (tenant_id, branch_id, product_id, batch_no, purchase_date, unit_cost, quantity_in, quantity_remaining).
-
-### Double-Entry Accounting:
-- `chart_of_accounts`: Tenant account chart (tenant_id, code, name, type, parent_id).
-- `journal_entries`: Balanced transaction headers (tenant_id, branch_id, voucher_type, voucher_no, date, is_posted).
-- `journal_lines`: Double-entry lines (tenant_id, journal_entry_id, account_id, debit, credit, narration).
+### System & Infrastructure Tables:
+- `migrations`, `password_reset_tokens`, `sessions`, `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs`.

@@ -1,0 +1,152 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Enums\TenantStatus;
+use App\Models\Branch;
+use App\Models\Tenant;
+use App\Models\TenantRecord;
+use App\Models\User;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+
+class TenantSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        // 1. Platform Super Admin (No tenant attachment)
+        User::firstOrCreate(
+            ['email' => 'admin@veggitable.test'],
+            [
+                'name' => 'Platform Super Admin',
+                'password' => Hash::make('password'),
+                'is_super_admin' => true,
+                'is_tenant_owner' => false,
+                'status' => 'active',
+            ]
+        );
+
+        // 2. Tenant A: Al-Madina Vegetables
+        $tenantA = Tenant::firstOrCreate(
+            ['slug' => 'al-madina'],
+            [
+                'name' => 'Al-Madina Fresh Vegetables',
+                'status' => TenantStatus::Active,
+                'email' => 'info@almadina.test',
+                'phone' => '+92 300 1234567',
+                'city' => 'Lahore',
+                'currency' => 'PKR',
+                'timezone' => 'Asia/Karachi',
+                'default_locale' => 'ur',
+                'trial_ends_at' => now()->addDays(30),
+                'subscription_ends_at' => now()->addYear(),
+            ]
+        );
+
+        $branchA1 = Branch::firstOrCreate(
+            ['tenant_id' => $tenantA->id, 'code' => 'HQ-01'],
+            [
+                'name' => 'Main Market Head Branch',
+                'city' => 'Lahore',
+                'is_headquarters' => true,
+                'is_active' => true,
+            ]
+        );
+
+        $branchA2 = Branch::firstOrCreate(
+            ['tenant_id' => $tenantA->id, 'code' => 'BR-02'],
+            [
+                'name' => 'Subzi Mandi Branch',
+                'city' => 'Lahore',
+                'is_headquarters' => false,
+                'is_active' => true,
+            ]
+        );
+
+        $ownerA = User::firstOrCreate(
+            ['email' => 'owner@almadina.test'],
+            [
+                'name' => 'Haji Muhammad (Owner)',
+                'password' => Hash::make('password'),
+                'tenant_id' => $tenantA->id,
+                'current_branch_id' => $branchA1->id,
+                'is_super_admin' => false,
+                'is_tenant_owner' => true,
+                'status' => 'active',
+            ]
+        );
+
+        $ownerA->branches()->syncWithoutDetaching([
+            $branchA1->id => ['tenant_id' => $tenantA->id, 'is_default' => true],
+            $branchA2->id => ['tenant_id' => $tenantA->id, 'is_default' => false],
+        ]);
+
+        // 3. Tenant B: Bismillah Green Grocers
+        $tenantB = Tenant::firstOrCreate(
+            ['slug' => 'bismillah'],
+            [
+                'name' => 'Bismillah Green Grocers',
+                'status' => TenantStatus::Active,
+                'email' => 'info@bismillah.test',
+                'phone' => '+92 321 7654321',
+                'city' => 'Karachi',
+                'currency' => 'PKR',
+                'timezone' => 'Asia/Karachi',
+                'default_locale' => 'en',
+                'trial_ends_at' => now()->addDays(30),
+                'subscription_ends_at' => now()->addYear(),
+            ]
+        );
+
+        $branchB1 = Branch::firstOrCreate(
+            ['tenant_id' => $tenantB->id, 'code' => 'HQ-01'], // Note: Same code HQ-01 as Tenant A, demonstrating multi-tenant compound unique indexes!
+            [
+                'name' => 'Bismillah Central Branch',
+                'city' => 'Karachi',
+                'is_headquarters' => true,
+                'is_active' => true,
+            ]
+        );
+
+        $ownerB = User::firstOrCreate(
+            ['email' => 'owner@bismillah.test'],
+            [
+                'name' => 'Abdul Rasheed (Owner)',
+                'password' => Hash::make('password'),
+                'tenant_id' => $tenantB->id,
+                'current_branch_id' => $branchB1->id,
+                'is_super_admin' => false,
+                'is_tenant_owner' => true,
+                'status' => 'active',
+            ]
+        );
+
+        $ownerB->branches()->syncWithoutDetaching([
+            $branchB1->id => ['tenant_id' => $tenantB->id, 'is_default' => true],
+        ]);
+
+        // Seed Sample Isolated Records
+        TenantRecord::withoutGlobalScopes()->firstOrCreate(
+            ['tenant_id' => $tenantA->id, 'code' => 'REC-001'],
+            [
+                'branch_id' => $branchA1->id,
+                'name' => 'Fresh Farm Tomatoes (Al-Madina)',
+                'amount' => 12500.00,
+                'description' => 'Tenant A private inventory lot',
+            ]
+        );
+
+        TenantRecord::withoutGlobalScopes()->firstOrCreate(
+            ['tenant_id' => $tenantB->id, 'code' => 'REC-001'], // Note: Same code REC-001 as Tenant A!
+            [
+                'branch_id' => $branchB1->id,
+                'name' => 'Imported Onions (Bismillah)',
+                'amount' => 28000.00,
+                'description' => 'Tenant B private inventory lot',
+            ]
+        );
+    }
+}

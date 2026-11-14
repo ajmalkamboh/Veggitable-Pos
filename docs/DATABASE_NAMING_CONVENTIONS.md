@@ -29,3 +29,4 @@
 - Foreign Key Constraints:
   - `tenant_id` -> `tenants(id) ON DELETE CASCADE`
   - Financial line references -> `ON DELETE RESTRICT` (ensures audit integrity)
+

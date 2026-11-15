@@ -1,13 +1,15 @@
 # KNOWN ISSUES & TECHNICAL DEBT TRACKER
 
-## Phase 10 Status: Complete & Verified — No Active Blockers
+## Phase 11 Status: Complete & Verified — No Active Blockers
 
 ### Notes & Verifications:
-1. **FIFO Stock Batch Deduction**:
-   - Outward stock transfers and inventory deductions automatically allocate from the oldest active produce lots first (`received_date asc`), ensuring accurate produce age tracking and shelf-life compliance.
-2. **Real-time Inventory Synchronization**:
-   - Inward purchases, cancellations, branch transfers, and physical audits atomically update both aggregate `inventory_stocks` and detailed `stock_movements`, guaranteeing zero balance drift.
-3. **Multi-Branch Isolation in Transfers**:
-   - Transfers validate origin branch stock, deduct origin stock on dispatch (marking `in_transit`), and replenish destination stock with new lots upon destination receipt acknowledgment.
-4. **Physical Count Variance Handling**:
-   - Physical audit sessions record previous system stock and counted physical stock, logging explicit gain or loss movements without overwriting history.
+1. **FIFO Costing & Profit Margin Calculation**:
+   - Every produce sale depletes the oldest active batches first and captures historical cost price directly into `sales_invoice_items.cost_price`, allowing exact Gross Profit and COGS calculation in real time.
+2. **Customer Credit Limit Gating**:
+   - Checkout with partial or full `credit` payment enforces `$customer->credit_limit` validation (`current_balance + credit_due <= credit_limit`). If exceeded, the transaction is rejected with an actionable validation error.
+3. **Cashier Till Variance Tracking**:
+   - `PosSession` tracks opening cash, sales payments, cash drops, and calculates discrepancy on close (`closing_cash - expected_cash`), ensuring drawer accountability.
+4. **Restocking on Sales Returns**:
+   - Returned produce items can be conditionally restocked (`is_restocked = true`), which immediately increments `inventory_stocks`, appends a `sale_return` inward movement to `stock_movements`, and reinstates quantity into available batches.
+5. **No Active Blockers**:
+   - All 91 automated tests pass cleanly with 489 assertions. Code conforms strictly to Laravel Pint standards.

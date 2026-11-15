@@ -380,5 +380,99 @@ Physical stock count audits and variance reconciliation vouchers.
 
 ---
 
-## 6. Super Admin, Roles & Security Tables
+## 6. POS & Sales Management Tables (Phase 11)
+
+### `pos_sessions`
+Cashier terminal work shifts and till cash drawer reconciliations.
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `branch_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `branches(id)` ON DELETE CASCADE
+- `user_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `users(id)` ON DELETE CASCADE
+- `opened_at`: TIMESTAMP NOT NULL
+- `closed_at`: TIMESTAMP NULL
+- `opening_cash`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `closing_cash`: DECIMAL(15, 2) NULL
+- `expected_cash`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `discrepancy`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `total_sales_amount`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `total_transactions_count`: INT NOT NULL DEFAULT 0
+- `status`: VARCHAR(20) NOT NULL DEFAULT 'open' (`open`, `closed`)
+- `notes`: TEXT NULL
+- `created_at`, `updated_at`: TIMESTAMP NULL
+- **Indexes**: `INDEX(tenant_id, branch_id, user_id, status)`
+
+### `sales_invoices`
+POS checkout retail and wholesale sales invoices with comprehensive profitability metrics.
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `branch_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `branches(id)` ON DELETE CASCADE
+- `pos_session_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `pos_sessions(id)` ON DELETE SET NULL
+- `customer_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `customers(id)` ON DELETE SET NULL
+- `invoice_no`: VARCHAR(50) NOT NULL (e.g. `INV-2601-00001`)
+- `invoice_date`: DATE NOT NULL
+- `subtotal`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `tax_amount`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `discount_amount`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `net_total`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `paid_amount`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `due_amount`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `change_returned`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `total_cost`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00 (Real-time FIFO COGS)
+- `gross_profit`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00 (Net Total - Total Cost)
+- `status`: VARCHAR(20) NOT NULL DEFAULT 'completed' (`completed`, `partial_return`, `returned`, `cancelled`)
+- `notes`: TEXT NULL
+- `created_by`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `users(id)` ON DELETE SET NULL
+- `created_at`, `updated_at`: TIMESTAMP NULL
+- `deleted_at`: TIMESTAMP NULL (Soft Deletes)
+- **Indexes**: `UNIQUE(tenant_id, invoice_no)`, `INDEX(tenant_id, branch_id, invoice_date)`, `INDEX(tenant_id, customer_id)`
+
+### `sales_invoice_items`
+Produce line items per sales invoice with cost basis and discounts.
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `sales_invoice_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `sales_invoices(id)` ON DELETE CASCADE
+- `product_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `products(id)` ON DELETE CASCADE
+- `quantity`: DECIMAL(15, 3) NOT NULL
+- `unit_code`: VARCHAR(20) NOT NULL DEFAULT 'kg'
+- `unit_price`: DECIMAL(15, 2) NOT NULL
+- `cost_price`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00 (FIFO cost basis)
+- `subtotal`: DECIMAL(15, 2) NOT NULL
+- `discount`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `tax`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `net_total`: DECIMAL(15, 2) NOT NULL
+- `notes`: VARCHAR(255) NULL
+- `created_at`, `updated_at`: TIMESTAMP NULL
+
+### `sales_invoice_payments`
+Multi-tender split payments (Cash, Bank, Card, Credit).
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `sales_invoice_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `sales_invoices(id)` ON DELETE CASCADE
+- `payment_method`: VARCHAR(30) NOT NULL (`cash`, `bank`, `card`, `credit`)
+- `amount`: DECIMAL(15, 2) NOT NULL
+- `account_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `accounts(id)` ON DELETE SET NULL
+- `transaction_reference`: VARCHAR(100) NULL
+- `created_at`, `updated_at`: TIMESTAMP NULL
+
+### `held_sales_tickets`
+Parked shopping carts for rapid cashier lane throughput.
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `branch_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `branches(id)` ON DELETE CASCADE
+- `user_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `users(id)` ON DELETE CASCADE
+- `ticket_number`: VARCHAR(50) NOT NULL
+- `customer_name`: VARCHAR(255) NULL
+- `cart_data`: JSON NOT NULL
+- `subtotal`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `status`: VARCHAR(20) NOT NULL DEFAULT 'held' (`held`, `resumed`, `cancelled`)
+- `created_at`, `updated_at`: TIMESTAMP NULL
+
+### `sales_returns` & `sales_return_items`
+Itemized and full returns with inventory restock and refund vouchers.
+- `sales_returns`: `id`, `tenant_id`, `branch_id`, `sales_invoice_id`, `return_no` (UNIQUE), `return_date`, `refund_amount`, `refund_method` (`cash`, `credit_note`, `customer_balance`), `reason`, `created_by`, timestamps.
+- `sales_return_items`: `id`, `sales_return_id`, `tenant_id`, `sales_invoice_item_id`, `product_id`, `quantity`, `refund_price`, `subtotal`, `is_restocked`, timestamps.
+
+---
+
+## 7. Super Admin, Roles & Security Tables
 - `subscription_plans`, `subscriptions`, `subscription_invoices`, `roles`, `permissions`, `permission_role`, `role_user`, `audit_logs`.

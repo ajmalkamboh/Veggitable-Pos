@@ -99,14 +99,6 @@ class PurchaseInvoice extends Model
     }
 
     /**
-     * Outstanding due amount alias.
-     */
-    public function getDueAmountAttribute(): float
-    {
-        return $this->due_balance;
-    }
-
-    /**
      * Generate unique sequential purchase invoice number.
      */
     public static function generateInvoiceNumber(Tenant $tenant): string

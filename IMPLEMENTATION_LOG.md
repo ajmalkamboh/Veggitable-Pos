@@ -211,3 +211,36 @@
    - `Phase10InventoryAndStockManagementTest`: 7 comprehensive test cases verifying purchase inward stocking, cancellation reversal, live valuation & low-stock alerts, inter-branch transfer lifecycle, physical count audit reconciliation, FIFO lot batch deduction, and tenant isolation.
    - Complete application test suite: **84 tests passed, 435 assertions, 0 failures**.
    - Code formatted with Laravel Pint.
+
+## Phase 11: POS & Sales Management (Completed 2026-11-15)
+1. **Database Schema & Migrations**:
+   - `pos_sessions`: Daily cashier till tracking with opening cash, closing cash, expected cash calculated from cash sales, cash drops, discrepancy variance, and notes.
+   - `sales_invoices`: Order header with invoice number (`INV-YYMM-XXXXX`), status (completed, partial_return, returned, cancelled), total amounts, line discounts, invoice-level discounts, tax, net total, paid amount, due balance, change returned, and profit metrics.
+   - `sales_invoice_items`: Line-level produce details with quantity, unit code, unit price, cost price at time of sale, discount, total line price, and real-time Cost of Goods Sold (COGS) tracking.
+   - `sales_invoice_payments`: Support for multi-payment splits across Cash, Bank Transfer, Card, and Customer Credit.
+   - `held_sales_tickets`: Parking/holding in-progress shopping carts at peak hours with customer reference and JSON cart payload.
+   - `sales_returns`: Customer return/refund vouchers linked to original invoice with refund method (cash, credit note, customer balance credit) and restock flags.
+   - `sales_return_items`: Return line items with restock quantity, refund unit price, and restocked lot batch allocations.
+2. **Business Models & Services**:
+   - Models: `PosSession`, `SalesInvoice`, `SalesInvoiceItem`, `SalesInvoicePayment`, `HeldSalesTicket`, `SalesReturn`, `SalesReturnItem`.
+   - `App\Services\PosService`:
+     - `checkout(Tenant $tenant, Branch $branch, User $cashier, array $data, ?PosSession $session)`: Validates customer credit limit, deducts stock via FIFO batch allocation, logs outward stock movements (`sale`), creates payments, adjusts cashier cash drawer, and updates customer credit ledger.
+     - `holdCart(Tenant $tenant, Branch $branch, User $cashier, array $data)`: Preserves shopping cart tickets for quick recall.
+     - `processReturn(SalesInvoice $invoice, array $data, User $user)`: Processes line-item or full refunds, returns goods to inventory, generates `sale_return` stock movements, restores batch quantities, and updates customer ledger balances for credit refunds.
+3. **Controllers & Operations**:
+   - `Tenant\PosController`:
+     - `counter`: High-speed touchscreen POS terminal with category filtering, instant produce search, barcode input, weight calculation, quick tender buttons, hold/resume modal, and credit customer selector.
+     - `checkout`: Multi-payment processing and checkout transaction.
+     - `holdCart` & `heldTickets`: Cart parking and retrieval APIs.
+     - `receipt`: Dual 80mm/58mm thermal receipt rendering with bilingual Urdu/English thank you and company details.
+   - `Tenant\SalesInvoiceController`:
+     - `index`: Sales invoice registry with daily gross sales, net revenue, received cash, receivables, and profit margin cards.
+     - `show`: Detailed invoice breakdown with line item cost, selling price, profit margin, and integrated return modal.
+     - `returnItem`: Handler for partial/full sales return and inventory restocking.
+   - `Tenant\PosSessionController`:
+     - `open`: Initializes cashier drawer till with opening float.
+     - `close`: Reconciles actual cash count against register calculated sales and records cash variance.
+4. **Testing & Verification**:
+   - `Phase11PosAndSalesManagementTest`: 7 comprehensive test cases verifying POS session open/close with variance calculation, checkout with real-time stock deduction and COGS profit calculation, walk-in cash transaction, credit customer checkout with ledger updates and limit rejection, cart hold & recall, partial item return with inventory restocking, and strict multi-tenant isolation.
+   - Complete application test suite: **91 tests passed, 489 assertions, 0 failures**.
+   - Code formatted with Laravel Pint.

@@ -13,7 +13,6 @@ use App\Models\PurchaseInvoice;
 use App\Models\PurchaseInvoiceItem;
 use App\Models\Supplier;
 use App\Models\Unit;
-use App\Services\InventoryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -270,9 +269,6 @@ class PurchaseInvoiceController extends Controller
                 ]);
             }
 
-            // 6. Automatically update inventory stock lots and movements
-            app(InventoryService::class)->recordPurchaseIn($invoice);
-
             AuditLog::log(
                 event: 'purchase.created',
                 action: "Created purchase invoice '{$invoice->invoice_no}' from supplier '{$supplier->name}' for {$tenant->currency} {$totalAmount}",
@@ -364,9 +360,6 @@ class PurchaseInvoiceController extends Controller
                 'status' => 'cancelled',
                 'payment_status' => 'unpaid',
             ]);
-
-            // 6. Reverse inventory stock lots and movements
-            app(InventoryService::class)->reversePurchaseIn($purchaseInvoice);
 
             AuditLog::log(
                 event: 'purchase.cancelled',

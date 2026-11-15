@@ -14,10 +14,13 @@ use App\Http\Controllers\Tenant\CategoryController as TenantCategoryController;
 use App\Http\Controllers\Tenant\CustomerController as TenantCustomerController;
 use App\Http\Controllers\Tenant\InventoryController as TenantInventoryController;
 use App\Http\Controllers\Tenant\OnboardingController as TenantOnboardingController;
+use App\Http\Controllers\Tenant\PosController as TenantPosController;
+use App\Http\Controllers\Tenant\PosSessionController as TenantPosSessionController;
 use App\Http\Controllers\Tenant\ProductController as TenantProductController;
 use App\Http\Controllers\Tenant\PurchaseInvoiceController as TenantPurchaseInvoiceController;
 use App\Http\Controllers\Tenant\PurchaseReturnController as TenantPurchaseReturnController;
 use App\Http\Controllers\Tenant\RoleController as TenantRoleController;
+use App\Http\Controllers\Tenant\SalesInvoiceController as TenantSalesInvoiceController;
 use App\Http\Controllers\Tenant\StockAdjustmentController as TenantStockAdjustmentController;
 use App\Http\Controllers\Tenant\StockTransferController as TenantStockTransferController;
 use App\Http\Controllers\Tenant\SupplierController as TenantSupplierController;
@@ -222,6 +225,26 @@ Route::middleware(['auth', 'tenant.active', 'tenant.prevent_cross'])->group(func
                 Route::post('/', [TenantStockAdjustmentController::class, 'store'])->name('store');
                 Route::get('/{stockAdjustment}', [TenantStockAdjustmentController::class, 'show'])->name('show');
             });
+        });
+
+        // POS Counter Terminal & Fast Billing
+        Route::prefix('tenant/pos')->name('tenant.pos.')->group(function () {
+            Route::get('/', [TenantPosController::class, 'counter'])->name('counter');
+            Route::post('/checkout', [TenantPosController::class, 'checkout'])->name('checkout');
+            Route::post('/hold', [TenantPosController::class, 'hold'])->name('hold');
+            Route::get('/held-tickets', [TenantPosController::class, 'heldTickets'])->name('held-tickets');
+            Route::get('/receipt/{salesInvoice}', [TenantPosController::class, 'receipt'])->name('receipt');
+
+            // Till Sessions
+            Route::post('/session/open', [TenantPosSessionController::class, 'open'])->name('session.open');
+            Route::post('/session/{posSession}/close', [TenantPosSessionController::class, 'close'])->name('session.close');
+        });
+
+        // Sales Invoices & Orders History
+        Route::prefix('tenant/sales')->name('tenant.sales.')->group(function () {
+            Route::get('/', [TenantSalesInvoiceController::class, 'index'])->name('index');
+            Route::get('/{salesInvoice}', [TenantSalesInvoiceController::class, 'show'])->name('show');
+            Route::post('/{salesInvoice}/returns', [TenantSalesInvoiceController::class, 'returnItem'])->name('returns.store');
         });
     });
 });

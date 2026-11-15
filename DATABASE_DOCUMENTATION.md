@@ -314,5 +314,71 @@ Produce returned to Mandi suppliers with rate and subtotal.
 
 ---
 
-## 5. Super Admin, Roles & Security Tables
+## 5. Inventory & Stock Management Tables (Phase 10)
+
+### `inventory_stocks`
+Real-time aggregate stock balance per product per branch outlet.
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `branch_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `branches(id)` ON DELETE CASCADE
+- `product_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `products(id)` ON DELETE CASCADE
+- `quantity`: DECIMAL(15, 3) NOT NULL DEFAULT 0.000 (Current real-time stock balance in stock unit)
+- `cost_price`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00 (Current average cost)
+- `reorder_level`: DECIMAL(15, 3) NOT NULL DEFAULT 0.000 (Branch-specific low-stock alert threshold)
+- `last_restocked_at`: TIMESTAMP NULL
+- `created_at`, `updated_at`: TIMESTAMP NULL
+- **Indexes**: `UNIQUE(tenant_id, branch_id, product_id)`, `INDEX(tenant_id, branch_id)`, `INDEX(tenant_id, product_id)`
+
+### `inventory_batches`
+Traceable produce lots for First-In, First-Out (FIFO) costing and perishable shelf-life tracking.
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `branch_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `branches(id)` ON DELETE CASCADE
+- `product_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `products(id)` ON DELETE CASCADE
+- `purchase_invoice_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `purchase_invoices(id)` ON DELETE SET NULL
+- `purchase_invoice_item_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `purchase_invoice_items(id)` ON DELETE SET NULL
+- `lot_number`: VARCHAR(50) NOT NULL (e.g. `LOT-TOM-2601-01`)
+- `received_date`: DATE NOT NULL
+- `expiry_date`: DATE NULL (Computed from product perishable shelf life)
+- `initial_quantity`: DECIMAL(15, 3) NOT NULL
+- `current_quantity`: DECIMAL(15, 3) NOT NULL
+- `unit_cost`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `status`: VARCHAR(20) NOT NULL DEFAULT 'active' (`active`, `depleted`, `expired`, `cancelled`)
+- `created_at`, `updated_at`: TIMESTAMP NULL
+- `deleted_at`: TIMESTAMP NULL (Soft Deletes)
+- **Indexes**: `INDEX(tenant_id, branch_id, product_id, status)`, `INDEX(tenant_id, lot_number)`
+
+### `stock_movements`
+Immutable double-entry stock movement ledger for complete inventory auditability.
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `branch_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `branches(id)` ON DELETE CASCADE
+- `product_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `products(id)` ON DELETE CASCADE
+- `batch_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `inventory_batches(id)` ON DELETE SET NULL
+- `type`: VARCHAR(30) NOT NULL (`purchase_in`, `sale_out`, `transfer_out`, `transfer_in`, `adjustment_in`, `adjustment_out`, `wastage_out`)
+- `reference_type`: VARCHAR(50) NULL (`purchase_invoice`, `pos_sale`, `stock_transfer`, `stock_adjustment`)
+- `reference_id`: BIGINT UNSIGNED NULL
+- `reference_no`: VARCHAR(100) NULL
+- `quantity_change`: DECIMAL(15, 3) NOT NULL (Positive for inward, negative for outward)
+- `quantity_before`: DECIMAL(15, 3) NOT NULL
+- `quantity_after`: DECIMAL(15, 3) NOT NULL
+- `unit_cost`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `notes`: TEXT NULL
+- `created_by`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `users(id)` ON DELETE SET NULL
+- `created_at`, `updated_at`: TIMESTAMP NULL
+- **Indexes**: `INDEX(tenant_id, branch_id, product_id, created_at)`, `INDEX(tenant_id, type)`
+
+### `stock_transfers` & `stock_transfer_items`
+Inter-branch logistics vouchers and line items for transfer between branches.
+- `stock_transfers`: `id`, `tenant_id`, `transfer_no` (UNIQUE), `from_branch_id`, `to_branch_id`, `transfer_date`, `status` (`pending`, `in_transit`, `received`, `cancelled`), `dispatched_at`, `dispatched_by`, `received_at`, `received_by`, `vehicle_number`, `driver_name`, `driver_phone`, `notes`, `created_by`, timestamps, soft deletes.
+- `stock_transfer_items`: `id`, `stock_transfer_id`, `tenant_id`, `product_id`, `batch_id`, `quantity_dispatched`, `quantity_received`, `unit_cost`, timestamps.
+
+### `stock_adjustments` & `stock_adjustment_items`
+Physical stock count audits and variance reconciliation vouchers.
+- `stock_adjustments`: `id`, `tenant_id`, `branch_id`, `adjustment_no` (UNIQUE), `date`, `reason` (`physical_count_discrepancy`, `drying_weight_loss`, `damage_spoilage`, `excess_produce_found`, `other`), `notes`, `created_by`, timestamps.
+- `stock_adjustment_items`: `id`, `stock_adjustment_id`, `tenant_id`, `product_id`, `current_quantity`, `counted_quantity`, `difference_quantity`, `unit_cost`, timestamps.
+
+---
+
+## 6. Super Admin, Roles & Security Tables
 - `subscription_plans`, `subscriptions`, `subscription_invoices`, `roles`, `permissions`, `permission_role`, `role_user`, `audit_logs`.

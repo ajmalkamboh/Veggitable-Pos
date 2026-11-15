@@ -12,11 +12,14 @@ use App\Http\Controllers\SuperAdmin\TenantController as SuperAdminTenantControll
 use App\Http\Controllers\Tenant\AuditLogController as TenantAuditController;
 use App\Http\Controllers\Tenant\CategoryController as TenantCategoryController;
 use App\Http\Controllers\Tenant\CustomerController as TenantCustomerController;
+use App\Http\Controllers\Tenant\InventoryController as TenantInventoryController;
 use App\Http\Controllers\Tenant\OnboardingController as TenantOnboardingController;
 use App\Http\Controllers\Tenant\ProductController as TenantProductController;
 use App\Http\Controllers\Tenant\PurchaseInvoiceController as TenantPurchaseInvoiceController;
 use App\Http\Controllers\Tenant\PurchaseReturnController as TenantPurchaseReturnController;
 use App\Http\Controllers\Tenant\RoleController as TenantRoleController;
+use App\Http\Controllers\Tenant\StockAdjustmentController as TenantStockAdjustmentController;
+use App\Http\Controllers\Tenant\StockTransferController as TenantStockTransferController;
 use App\Http\Controllers\Tenant\SupplierController as TenantSupplierController;
 use App\Http\Controllers\Tenant\UnitController as TenantUnitController;
 use App\Http\Controllers\Tenant\UserController as TenantUserController;
@@ -195,6 +198,30 @@ Route::middleware(['auth', 'tenant.active', 'tenant.prevent_cross'])->group(func
             Route::get('/{purchaseInvoice}/print', [TenantPurchaseInvoiceController::class, 'print'])->name('print');
             Route::delete('/{purchaseInvoice}', [TenantPurchaseInvoiceController::class, 'destroy'])->name('destroy');
             Route::post('/{purchaseInvoice}/returns', [TenantPurchaseReturnController::class, 'store'])->name('returns.store');
+        });
+
+        // Inventory, Produce Batches & Stock Movements
+        Route::prefix('tenant/inventory')->name('tenant.inventory.')->group(function () {
+            Route::get('/', [TenantInventoryController::class, 'index'])->name('index');
+            Route::get('/batches', [TenantInventoryController::class, 'batches'])->name('batches');
+            Route::get('/movements', [TenantInventoryController::class, 'movements'])->name('movements');
+
+            // Stock Transfers (Branch-to-Branch)
+            Route::prefix('transfers')->name('transfers.')->group(function () {
+                Route::get('/', [TenantStockTransferController::class, 'index'])->name('index');
+                Route::get('/create', [TenantStockTransferController::class, 'create'])->name('create');
+                Route::post('/', [TenantStockTransferController::class, 'store'])->name('store');
+                Route::get('/{stockTransfer}', [TenantStockTransferController::class, 'show'])->name('show');
+                Route::post('/{stockTransfer}/receive', [TenantStockTransferController::class, 'receive'])->name('receive');
+            });
+
+            // Stock Physical Audit & Discrepancy Adjustments
+            Route::prefix('adjustments')->name('adjustments.')->group(function () {
+                Route::get('/', [TenantStockAdjustmentController::class, 'index'])->name('index');
+                Route::get('/create', [TenantStockAdjustmentController::class, 'create'])->name('create');
+                Route::post('/', [TenantStockAdjustmentController::class, 'store'])->name('store');
+                Route::get('/{stockAdjustment}', [TenantStockAdjustmentController::class, 'show'])->name('show');
+            });
         });
     });
 });

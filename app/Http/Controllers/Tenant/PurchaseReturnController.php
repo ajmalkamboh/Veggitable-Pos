@@ -9,6 +9,7 @@ use App\Models\PartyLedgerEntry;
 use App\Models\PurchaseInvoice;
 use App\Models\PurchaseReturn;
 use App\Models\PurchaseReturnItem;
+use App\Services\InventoryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -98,6 +99,9 @@ class PurchaseReturnController extends Controller
                 'balance' => $newSupplierBalance,
                 'created_by' => auth()->id(),
             ]);
+
+            // Deduct returned quantity from inventory stock
+            app(InventoryService::class)->recordPurchaseReturn($return);
 
             AuditLog::log(
                 event: 'purchase.returned',

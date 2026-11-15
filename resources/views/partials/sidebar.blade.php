@@ -115,17 +115,18 @@
         </ul>
       </li>
 
-      <li class="nav-item has-submenu">
-        <a class="nav-link" href="#" aria-expanded="false" data-tooltip="Inventory">
+      <li class="nav-item has-submenu {{ request()->routeIs('tenant.inventory.*') ? 'show' : '' }}">
+        <a class="nav-link {{ request()->routeIs('tenant.inventory.*') ? 'active' : '' }}" href="#" aria-expanded="false" data-tooltip="{{ __('Inventory') }}">
           <i class="ph-duotone ph-package"></i>
-          <span>Inventory & Batches</span>
+          <span>{{ __('Inventory & Stock') }}</span>
           <i class="ph-duotone ph-caret-down nav-arrow"></i>
         </a>
         <ul class="nav-submenu">
-          <li><a class="nav-link" href="#">Current Stock</a></li>
-          <li><a class="nav-link" href="#">Stock Movement Ledger</a></li>
-          <li><a class="nav-link" href="#">Stock Valuation</a></li>
-          <li><a class="nav-link" href="#">Wastage & Damage</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.inventory.index') ? 'active' : '' }}" href="{{ route('tenant.inventory.index') }}">{{ __('Current Stock Levels') }}</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.inventory.batches') ? 'active' : '' }}" href="{{ route('tenant.inventory.batches') }}">{{ __('Produce Lots & Batches') }}</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.inventory.movements') ? 'active' : '' }}" href="{{ route('tenant.inventory.movements') }}">{{ __('Stock Movement Ledger') }}</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.inventory.transfers.*') ? 'active' : '' }}" href="{{ route('tenant.inventory.transfers.index') }}">{{ __('Branch Transfers') }}</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.inventory.adjustments.*') ? 'active' : '' }}" href="{{ route('tenant.inventory.adjustments.index') }}">{{ __('Physical Audit Adjustments') }}</a></li>
         </ul>
       </li>
 

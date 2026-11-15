@@ -165,3 +165,49 @@
    - `Phase09PurchaseManagementTest`: 7 comprehensive test cases verifying invoice creation, tare weight calculations, Mandi commission & fees, immediate cash settlement, debit notes, invoice cancellation reversal, tenant isolation, and print rendering.
    - Complete application test suite: **77 tests passed, 379 assertions, 0 failures**.
    - Code formatted with Laravel Pint.
+
+
+---
+
+## [Phase 10] - Inventory & Stock Management
+**Date**: 2026-11-15
+**Status**: COMPLETED
+
+1. **Database Schema & Migrations**:
+   - `2026_11_15_050049_create_inventory_and_stock_tables.php`:
+     - `inventory_stocks`: Real-time aggregate stock per product per branch (`quantity`, `cost_price`, `reorder_level`, `last_restocked_at`).
+     - `inventory_batches`: Traceable produce lots (`lot_number`, `received_date`, `expiry_date`, `initial_quantity`, `current_quantity`, `unit_cost`, `status`).
+     - `stock_movements`: Immutable stock movement audit ledger (`type`, `reference_type`, `reference_id`, `reference_no`, `quantity_change`, `quantity_before`, `quantity_after`, `unit_cost`, `created_by`).
+     - `stock_transfers` & `stock_transfer_items`: Inter-branch dispatch & receipt logistics vouchers (`transfer_no`, `from_branch_id`, `to_branch_id`, `status`, vehicle & driver details).
+     - `stock_adjustments` & `stock_adjustment_items`: Physical count audit and variance reconciliation vouchers (`adjustment_no`, `reason`, system stock, physical count, variance).
+2. **Models & Services**:
+   - Models: `InventoryStock`, `InventoryBatch`, `StockMovement`, `StockTransfer`, `StockTransferItem`, `StockAdjustment`, `StockAdjustmentItem`.
+   - `App\Services\InventoryService`:
+     - `recordPurchaseIn(PurchaseInvoice $invoice)`: Automatically provisions batches, updates branch stock, and records `purchase_in` movement.
+     - `reversePurchaseIn(PurchaseInvoice $invoice)`: Reverses stock on cancellation and logs `adjustment_out`.
+     - `recordPurchaseReturn(PurchaseReturn $return)`: Deducts returned stock and logs movement.
+     - `dispatchTransfer(StockTransfer $transfer)`: Deducts source branch stock using FIFO lot allocation and logs `transfer_out`.
+     - `receiveTransfer(StockTransfer $transfer, array $receivedQuantities)`: Adds destination branch stock, provisions lot batches, and logs `transfer_in`.
+     - `recordAdjustment(Tenant $tenant, Branch $branch, array $validated)`: Reconciles physical counts against recorded stock and logs gain/loss audit movements.
+3. **Controllers & Operations**:
+   - `Tenant\InventoryController`:
+     - `index`: Real-time stock overview table, total valuation metrics, branch filter, category filter, low-stock filter, search.
+     - `batches`: Produce lots listing with received dates, expiry / shelf-life tracking, and active status.
+     - `movements`: Immutable stock ledger with filterable movement types.
+   - `Tenant\StockTransferController`:
+     - `index`: Listing of transfers with status badges.
+     - `create` & `store`: Transfer voucher dispatch form with dynamic item repeater.
+     - `show` & `receive`: Transfer voucher view with destination receipt acknowledgment.
+   - `Tenant\StockAdjustmentController`:
+     - `index`: List of physical audits.
+     - `create` & `store`: Full branch stock audit sheet with real-time variance calculation.
+     - `show`: Detailed reconciliation variance report.
+4. **Views & Menus**:
+   - `resources/views/tenant/inventory/index.blade.php`, `batches.blade.php`, `movements.blade.php`.
+   - `resources/views/tenant/inventory/transfers/index.blade.php`, `create.blade.php`, `show.blade.php`.
+   - `resources/views/tenant/inventory/adjustments/index.blade.php`, `create.blade.php`, `show.blade.php`.
+   - Sidebar updated with "Inventory & Stock" navigation section.
+5. **Testing & Verification**:
+   - `Phase10InventoryAndStockManagementTest`: 7 comprehensive test cases verifying purchase inward stocking, cancellation reversal, live valuation & low-stock alerts, inter-branch transfer lifecycle, physical count audit reconciliation, FIFO lot batch deduction, and tenant isolation.
+   - Complete application test suite: **84 tests passed, 435 assertions, 0 failures**.
+   - Code formatted with Laravel Pint.

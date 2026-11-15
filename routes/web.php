@@ -10,8 +10,11 @@ use App\Http\Controllers\SuperAdmin\SubscriptionPaymentController as SuperAdminP
 use App\Http\Controllers\SuperAdmin\SubscriptionPlanController as SuperAdminPlanController;
 use App\Http\Controllers\SuperAdmin\TenantController as SuperAdminTenantController;
 use App\Http\Controllers\Tenant\AuditLogController as TenantAuditController;
+use App\Http\Controllers\Tenant\CategoryController as TenantCategoryController;
 use App\Http\Controllers\Tenant\OnboardingController as TenantOnboardingController;
+use App\Http\Controllers\Tenant\ProductController as TenantProductController;
 use App\Http\Controllers\Tenant\RoleController as TenantRoleController;
+use App\Http\Controllers\Tenant\UnitController as TenantUnitController;
 use App\Http\Controllers\Tenant\UserController as TenantUserController;
 use App\Http\Controllers\TenantRecordController;
 use App\Http\Controllers\TenantRegistrationController;
@@ -120,5 +123,39 @@ Route::middleware(['auth', 'tenant.active', 'tenant.prevent_cross'])->group(func
         Route::get('/tenant/records', [TenantRecordController::class, 'index'])->name('tenant.records.index');
         Route::post('/tenant/records', [TenantRecordController::class, 'store'])->name('tenant.records.store');
         Route::get('/tenant/records/{record}', [TenantRecordController::class, 'show'])->name('tenant.records.show');
+
+        // Master Categories & Subcategories
+        Route::prefix('tenant/categories')->name('tenant.categories.')->group(function () {
+            Route::get('/', [TenantCategoryController::class, 'index'])->name('index');
+            Route::get('/create', [TenantCategoryController::class, 'create'])->name('create');
+            Route::post('/', [TenantCategoryController::class, 'store'])->name('store');
+            Route::get('/{category}/edit', [TenantCategoryController::class, 'edit'])->name('edit');
+            Route::put('/{category}', [TenantCategoryController::class, 'update'])->name('update');
+            Route::delete('/{category}', [TenantCategoryController::class, 'destroy'])->name('destroy');
+        });
+
+        // Measurement Units & Conversions
+        Route::prefix('tenant/units')->name('tenant.units.')->group(function () {
+            Route::get('/', [TenantUnitController::class, 'index'])->name('index');
+            Route::get('/create', [TenantUnitController::class, 'create'])->name('create');
+            Route::post('/', [TenantUnitController::class, 'store'])->name('store');
+            Route::get('/{unit}/edit', [TenantUnitController::class, 'edit'])->name('edit');
+            Route::put('/{unit}', [TenantUnitController::class, 'update'])->name('update');
+            Route::delete('/{unit}', [TenantUnitController::class, 'destroy'])->name('destroy');
+            Route::post('/conversions', [TenantUnitController::class, 'storeConversion'])->name('conversions.store');
+            Route::delete('/conversions/{conversion}', [TenantUnitController::class, 'destroyConversion'])->name('conversions.destroy');
+        });
+
+        // Products Catalog & Barcodes
+        Route::prefix('tenant/products')->name('tenant.products.')->group(function () {
+            Route::get('/', [TenantProductController::class, 'index'])->name('index');
+            Route::get('/create', [TenantProductController::class, 'create'])->name('create');
+            Route::post('/', [TenantProductController::class, 'store'])->name('store');
+            Route::get('/{product}', [TenantProductController::class, 'show'])->name('show');
+            Route::get('/{product}/edit', [TenantProductController::class, 'edit'])->name('edit');
+            Route::put('/{product}', [TenantProductController::class, 'update'])->name('update');
+            Route::delete('/{product}', [TenantProductController::class, 'destroy'])->name('destroy');
+            Route::get('/{product}/barcode', [TenantProductController::class, 'barcode'])->name('barcode');
+        });
     });
 });

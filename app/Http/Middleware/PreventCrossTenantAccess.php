@@ -46,6 +46,17 @@ class PreventCrossTenantAccess
             if ($this->context->hasTenant() && (int) $this->context->getTenantId() !== (int) $user->tenant_id) {
                 abort(403, 'Cross-tenant context mismatch detected.');
             }
+
+            // Inspect all route parameters: any tenant-owned model must belong to current tenant
+            if ($request->route()) {
+                foreach ($request->route()->parameters() as $parameter) {
+                    if (is_object($parameter) && isset($parameter->tenant_id)) {
+                        if ((int) $parameter->tenant_id !== (int) $user->tenant_id) {
+                            abort(403, 'Cross-tenant access forbidden: resource does not belong to your business.');
+                        }
+                    }
+                }
+            }
         }
 
         return $next($request);

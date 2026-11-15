@@ -1,8 +1,8 @@
-# PHASE COMPLETION REPORT: PHASE 06 – URDU/ENGLISH LOCALIZATION & RTL SUPPORT
+# PHASE COMPLETION REPORT: PHASE 07 – PRODUCT, CATEGORIES & UNIT MANAGEMENT
 
 ## Executive Summary
-Phase 06 has been **genuinely completed** in strict compliance with the Master Development Instructions.
-Full bilingual English and Urdu localization, RTL layout support, Nastaliq typography, persistent user and business language preferences, an Eloquent bilingual search trait, thermal receipt print layout, and validation translations have been implemented, connected to MySQL 8.4, and verified with 7 automated feature test cases.
+Phase 07 has been **genuinely completed** in strict compliance with the Master Development Instructions.
+Vegetable, fruit, and wholesale lot catalog management, multi-level category & subcategory hierarchies, measurement unit master with bulk-to-retail conversion multipliers (e.g. 1 Mann = 40 Kg), auto-generated sequential and EAN barcodes, cost/selling price rules with profit margin calculation, perishability indicators with shelf life tracking, thermal barcode sticker sheet printing, strict cross-tenant parameter isolation, and role-based permissions have been fully implemented, tested, and styled.
 
 ---
 
@@ -12,58 +12,103 @@ Full bilingual English and Urdu localization, RTL layout support, Nastaliq typog
 - **Phase 03**: Super Admin platform, subscription plan tiers, billing cycles, manual offline payments, sequential invoicing (`INV-YYYY-XXXX-RAND`), and SaaS analytics.
 - **Phase 04**: Authentication lifecycle, multi-tenant roles & permissions matrix, custom roles, branch boundary enforcement, and security audit trails.
 - **Phase 05**: 4-Step business onboarding wizard, profile/logo setup, fiscal year, branch configuration, cash & bank accounts, units & categories seeding, and operational route gating.
+- **Phase 06**: Bilingual English and Urdu localization, RTL layout support, Nastaliq typography, persistent user and business language preferences, an Eloquent bilingual search trait, thermal receipt print layout.
 
 ---
 
 ## 2. What Was Newly Implemented
-1. **Comprehensive Translation Dictionaries**:
-   - `lang/en/shop.php` & `lang/ur/shop.php`: Dedicated vegetable shop vocabulary (vegetables, fruits, mandi auction lots, cashier, weighing, units, gross total, discount, net payable, change return, cash in drawer).
-   - `lang/en/onboarding.php` & `lang/ur/onboarding.php`: 4-step wizard bilingual titles, checklist labels, and instruction text.
-   - `lang/ur/validation.php`: Authentic Urdu validation error messages for form submissions.
-   - `lang/en/common.php` & `lang/ur/common.php`: System-wide terms, actions, and status translations.
-2. **Dynamic Locale Management & Persistence**:
-   - `LocaleController`: Persists selected locale in session and automatically updates authenticated user's `preferences['locale']`.
-   - `SetLocale` Middleware: Resolves locale via strict hierarchy: (1) Session, (2) User preference, (3) Active tenant default locale, (4) App fallback.
-3. **RTL / LTR Layouts & Typography**:
-   - `layouts.admin` & `layouts.auth`: Dynamically output `dir="rtl"` / `dir="ltr"` and conditionally include `bootstrap.rtl.min.css` alongside `custom-rtl.css`.
-   - `custom-rtl.css`: Complete styling rules for right-aligned sidebars, mirrored icon spacing, floating header offsets, input group radius corrections, and `Noto Nastaliq Urdu` / `Noto Sans Arabic` typography.
-4. **Bilingual Search Trait**:
-   - `App\Core\Localization\BilingualSearchable`: Trait providing `scopeSearchBilingual` to search across English and Urdu columns (`name`, `name_ur`) seamlessly in MySQL `utf8mb4_unicode_ci`.
-   - Integrated into `Category` and `Unit` models.
-5. **Print & Thermal Receipt**:
-   - `resources/views/reports/thermal-receipt.blade.php`: RTL thermal receipt print template supporting 80mm roll dimensions, Urdu header, line items, and totals.
+1. **Master Categories & Subcategories Hierarchy**:
+   - `CategoryController`: Full CRUD for product and expense categories.
+   - Self-referencing parent-child relationships allowing unlimited subcategories (`Leafy Vegetables` -> `Fresh Herbs`).
+   - Image upload for category banners/icons.
+   - Protection preventing deletion of categories containing subcategories or linked products.
+2. **Measurement Units & Conversion Multipliers**:
+   - `UnitController`: Custom measurement unit CRUD + wholesale-to-retail conversion formula management.
+   - Built-in support for Mandi bulk lot units (`Mann`, `Bori`, `Peti`, `Katta`, `Dhari`) and retail counter units (`Kg`, `Gram`, `Dozen`, `Piece`).
+   - `UnitConversion` model with dynamic multiplier execution: `convert($quantity)`.
+   - Protection against deleting system default units or units referenced by active products and conversion rules.
+3. **Vegetables & Fruits Product Catalog**:
+   - `ProductController`: Comprehensive catalog management.
+   - Product types: `Fresh Vegetable`, `Fresh Fruit`, `Mandi Auction Lot`, `Pre-packed / Processed`.
+   - Dual-language names (`name`, `name_ur`), automatic SKU code generation (`PRD-XXXXXX`), and barcode generator using in-store prefix `20` + tenant code + random sequence.
+   - Purchase unit, selling unit, stock unit, and purchase-to-stock conversion factor.
+   - Pricing rules: Cost price, retail selling price, minimum floor selling price, and profit margin percentage accessor (`$product->profit_margin_percentage`).
+   - Perishability flag (`is_perishable`) and shelf life tracking in days (`shelf_life_days`).
+   - Low stock reorder alert threshold (`reorder_level`).
+   - Soft deletes support preserving historical transaction links.
+4. **Thermal Barcode Sticker Printing**:
+   - `resources/views/tenant/products/barcode.blade.php`: Standard 50mm × 35mm thermal sticker sheet layout with business name, English and Urdu product title, Libre Barcode 128 rendering, human-readable barcode numbers, and retail price tags.
+5. **Multi-Tenant Security Enforcement**:
+   - Enhanced `PreventCrossTenantAccess` middleware to introspect all incoming route model parameters (`Product`, `Category`, `Unit`, `TenantRecord`) and reject cross-tenant access with 403 Forbidden.
+   - Controllers include defensive authorization checks (`abort_if($model->tenant_id !== $tenant->id, 404)`).
+   - Protected with permissions: `products.view`, `products.manage`, `categories.manage`, `units.manage`.
 
 ---
 
 ## 3. Database Changes
-- No schema changes required; utilized existing `default_locale` column on `tenants` and `preferences` JSON on `users`.
-- Models `Category` and `Unit` enhanced with `BilingualSearchable`.
+1. **New Migration**: `database/migrations/2026_11_14_220000_add_parent_and_image_to_categories_table.php`
+   - Added `parent_id` foreign key and `image_path` to `categories`.
+2. **New Migration**: `database/migrations/2026_11_14_220010_create_unit_conversions_table.php`
+   - Created `unit_conversions` table with unique constraint on `['tenant_id', 'from_unit_id', 'to_unit_id']`.
+3. **New Migration**: `database/migrations/2026_11_14_220020_create_products_table.php`
+   - Created `products` table with unit foreign keys, pricing decimals, soft deletes, and composite unique `['tenant_id', 'code']`.
+4. **Updated Models**:
+   - `App\Models\Product`
+   - `App\Models\UnitConversion`
+   - `App\Models\Unit`
+   - `App\Models\Category`
+   - `App\Models\Tenant`
+   - `App\Models\AuditLog`
+5. **Updated Seeders**:
+   - `RoleAndPermissionSeeder`: Seeded `products.view`, `products.manage`, `categories.manage`, `units.manage`.
 
 ---
 
-## 4. Routes and Pages Created / Enhanced
-- `GET /language/{locale}`: `language.switch` -> Dynamic locale switcher with user preference persistence.
-- `resources/views/reports/thermal-receipt.blade.php` -> Bilingual thermal receipt template.
+## 4. Routes and Pages Created
+- `GET /tenant/categories` (`tenant.categories.index`)
+- `GET /tenant/categories/create` (`tenant.categories.create`)
+- `POST /tenant/categories` (`tenant.categories.store`)
+- `GET /tenant/categories/{category}/edit` (`tenant.categories.edit`)
+- `PUT /tenant/categories/{category}` (`tenant.categories.update`)
+- `DELETE /tenant/categories/{category}` (`tenant.categories.destroy`)
+- `GET /tenant/units` (`tenant.units.index`)
+- `GET /tenant/units/create` (`tenant.units.create`)
+- `POST /tenant/units` (`tenant.units.store`)
+- `GET /tenant/units/{unit}/edit` (`tenant.units.edit`)
+- `PUT /tenant/units/{unit}` (`tenant.units.update`)
+- `DELETE /tenant/units/{unit}` (`tenant.units.destroy`)
+- `POST /tenant/units/conversions` (`tenant.units.conversions.store`)
+- `DELETE /tenant/units/conversions/{conversion}` (`tenant.units.conversions.destroy`)
+- `GET /tenant/products` (`tenant.products.index`)
+- `GET /tenant/products/create` (`tenant.products.create`)
+- `POST /tenant/products` (`tenant.products.store`)
+- `GET /tenant/products/{product}` (`tenant.products.show`)
+- `GET /tenant/products/{product}/edit` (`tenant.products.edit`)
+- `PUT /tenant/products/{product}` (`tenant.products.update`)
+- `DELETE /tenant/products/{product}` (`tenant.products.destroy`)
+- `GET /tenant/products/{product}/barcode` (`tenant.products.barcode`)
 
 ---
 
 ## 5. Tests Executed and Results
-- Created test suite: `tests/Feature/Phase06LocalizationAndRtlTest.php` (7 test cases).
-  1. `test_locale_switch_route_updates_session` -> **PASSED**
-  2. `test_locale_switch_persists_user_preference` -> **PASSED**
-  3. `test_middleware_resolves_tenant_default_locale` -> **PASSED**
-  4. `test_rtl_layout_attributes_applied_in_urdu` -> **PASSED**
-  5. `test_ltr_layout_attributes_applied_in_english` -> **PASSED**
-  6. `test_urdu_translations_resolve_correctly` -> **PASSED**
-  7. `test_bilingual_search_finds_records_in_both_languages` -> **PASSED**
+- Created test suite: `tests/Feature/Phase07ProductCategoryUnitManagementTest.php` (9 test cases):
+  1. `test_user_can_create_category_and_subcategory` -> **PASSED**
+  2. `test_cannot_delete_category_with_subcategories` -> **PASSED**
+  3. `test_unit_crud_and_conversion_multiplier_calculation` -> **PASSED**
+  4. `test_system_default_units_cannot_be_deleted` -> **PASSED**
+  5. `test_user_can_create_product_with_auto_generated_barcode_and_margin_calculation` -> **PASSED**
+  6. `test_bilingual_product_search_works_in_english_and_urdu` -> **PASSED**
+  7. `test_strict_tenant_isolation_for_products_categories_and_units` -> **PASSED**
+  8. `test_barcode_sticker_sheet_is_accessible` -> **PASSED**
+  9. `test_permissions_protect_product_management_routes` -> **PASSED**
 - Complete application test suite:
-  - **53 tests passed, 235 assertions, 0 failures** (Duration: 11.12s).
+  - **62 tests passed, 278 assertions, 0 failures** (Duration: 17.19s).
 - Code style: Fixed and formatted with `vendor/bin/pint --format agent`.
 
 ---
 
 ## 6. Pending Tasks
-- Proceed to **Phase 07 – Product, Categories & Unit Management**.
+- Proceed to **Phase 08 – Supplier & Customer Management**.
 
 ---
 
@@ -73,5 +118,5 @@ Full bilingual English and Urdu localization, RTL layout support, Nastaliq typog
 ---
 
 ## 8. Completion Determination
-**Is Phase 06 genuinely complete?**: **YES**.
-The bilingual English/Urdu localization engine, RTL layout support, Nastaliq typography, bilingual database search, and receipt templates are fully implemented and verified.
+**Is Phase 07 genuinely complete?**: **YES**.
+All requirements for product catalog, category/subcategory hierarchies, measurement units, conversion rules, barcode printing, bilingual search, tenant isolation, and tests are complete.

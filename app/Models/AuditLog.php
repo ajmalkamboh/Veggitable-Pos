@@ -44,7 +44,24 @@ class AuditLog extends Model
     }
 
     /**
-     * Helper to quickly log an event.
+     * Helper to quickly log an event with payload.
+     */
+    public static function log(string $event, string $action, ?Model $auditable = null, ?array $oldValues = null, ?array $newValues = null): self
+    {
+        return self::record(
+            action: $action,
+            payload: array_filter([
+                'event' => $event,
+                'auditable_type' => $auditable ? get_class($auditable) : null,
+                'auditable_id' => $auditable?->id,
+                'old' => $oldValues,
+                'new' => $newValues,
+            ])
+        );
+    }
+
+    /**
+     * Helper to quickly record an audit log.
      */
     public static function record(string $action, ?array $payload = null, ?User $user = null, ?int $tenantId = null): self
     {

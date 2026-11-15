@@ -28,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'tenant.active' => EnsureTenantActive::class,
             'tenant.prevent_cross' => PreventCrossTenantAccess::class,
             'tenant.onboarded' => EnsureTenantOnboarded::class,
+            'tenant.onboarded' => EnsureTenantOnboarded::class,
             'superadmin' => EnsureSuperAdmin::class,
             'tenant.feature' => EnsureTenantHasFeature::class,
         ]);

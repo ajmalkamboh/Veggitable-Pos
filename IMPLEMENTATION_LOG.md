@@ -72,3 +72,34 @@
    - `tests/Feature/Phase06LocalizationAndRtlTest.php`: 7 test cases covering locale switching, user preference persistence, tenant default fallback, RTL HTML attributes & CSS inclusion, LTR HTML attributes & CSS inclusion, Urdu dictionary resolution, and bilingual SQL searches.
    - Complete application test suite: **53 tests passed, 235 assertions, 0 failures**.
    - Code formatted with `vendor/bin/pint --format agent`.
+
+---
+
+## [Phase 07] - Product, Categories & Unit Management
+**Date**: 2026-11-15
+**Status**: COMPLETED
+
+1. **Database Schema & Migrations**:
+   - `2026_11_14_220000_add_parent_and_image_to_categories_table.php`: Added `parent_id` (foreign key self-reference) and `image_path` to `categories` table.
+   - `2026_11_14_220010_create_unit_conversions_table.php`: Created `unit_conversions` table (`tenant_id`, `from_unit_id`, `to_unit_id`, `multiplier`, `description`).
+   - `2026_11_14_220020_create_products_table.php`: Created `products` table (`tenant_id`, `category_id`, `subcategory_id`, `name`, `name_ur`, `code`, `barcode`, `type`, `purchase_unit_id`, `selling_unit_id`, `stock_unit_id`, `unit_conversion_factor`, `cost_price`, `selling_price`, `min_selling_price`, `reorder_level`, `is_perishable`, `shelf_life_days`, `image_path`, `is_active`, timestamps, soft deletes).
+2. **Models & Traits**:
+   - `Product`: Relationships (`category`, `subcategory`, `purchaseUnit`, `sellingUnit`, `stockUnit`), `getProfitMarginPercentageAttribute()`, `generateBarcode(Tenant $tenant)` generator.
+   - `UnitConversion`: Conversion formula execution `convert($quantity)`.
+   - `Unit`: Bidirectional conversion relationships (`conversionsFrom`, `conversionsTo`) and products relationship.
+   - `Category`: Hierarchy relationships (`parent`, `subcategories`, `products`).
+   - `AuditLog`: Added `log($event, $action, $auditable, $oldValues, $newValues)` helper.
+3. **Multi-Tenant Security & Controller Implementation**:
+   - `PreventCrossTenantAccess`: Upgraded to automatically inspect all incoming route parameters with `tenant_id` and block cross-tenant inspection with 403.
+   - `CategoryController`: Full CRUD for product and expense categories, subcategory assignment, bilingual support, image upload, protected by `categories.manage` permission and tenant verification.
+   - `UnitController`: Measurement unit CRUD + conversion multiplier management (e.g. 1 Mann = 40 Kg), protected by `units.manage`.
+   - `ProductController`: Catalog management, filtering by type/category/status, bilingual search, profit margin calculation, shelf life monitoring, barcode sticker printing sheet, protected by `products.view` and `products.manage`.
+4. **Views & Thermal Printing**:
+   - `tenant/categories/index.blade.php`, `create.blade.php`, `edit.blade.php`.
+   - `tenant/units/index.blade.php`, `create.blade.php`, `edit.blade.php`.
+   - `tenant/products/index.blade.php`, `create.blade.php`, `edit.blade.php`, `show.blade.php`, `barcode.blade.php`.
+   - Sidebar updated with Vegetables & Fruits menu.
+5. **Testing & Verification**:
+   - `Phase07ProductCategoryUnitManagementTest`: 9 test cases verifying category hierarchy, unit conversions, barcode generation, profit margin computation, bilingual search, tenant isolation, and role permissions.
+   - Complete application test suite: **62 tests passed, 278 assertions, 0 failures**.
+   - Code formatted with Laravel Pint.

@@ -20,9 +20,13 @@ class RoleAndPermissionSeeder extends Seeder
             ['name' => 'Apply POS Discounts', 'slug' => 'pos.discount', 'module' => 'pos', 'description' => 'Apply custom discounts to sales.'],
             ['name' => 'Hold POS Bills', 'slug' => 'pos.hold', 'module' => 'pos', 'description' => 'Temporarily park and resume sale tickets.'],
 
-            // Inventory
+            // Inventory & Products
             ['name' => 'View Inventory', 'slug' => 'inventory.view', 'module' => 'inventory', 'description' => 'View stock quantities, lot batches and valuation.'],
             ['name' => 'Manage Inventory', 'slug' => 'inventory.manage', 'module' => 'inventory', 'description' => 'Adjust stock, record damage, and initiate transfers.'],
+            ['name' => 'View Products', 'slug' => 'products.view', 'module' => 'products', 'description' => 'View products catalog, pricing and barcodes.'],
+            ['name' => 'Manage Products', 'slug' => 'products.manage', 'module' => 'products', 'description' => 'Create, edit, and archive products and price lists.'],
+            ['name' => 'Manage Categories', 'slug' => 'categories.manage', 'module' => 'products', 'description' => 'Create and organize product and expense categories.'],
+            ['name' => 'Manage Units', 'slug' => 'units.manage', 'module' => 'products', 'description' => 'Configure measurement units and conversion multipliers.'],
 
             // Purchases
             ['name' => 'View Purchases', 'slug' => 'purchases.view', 'module' => 'purchases', 'description' => 'View supplier purchases and bills.'],
@@ -67,6 +71,7 @@ class RoleAndPermissionSeeder extends Seeder
                 'permissions' => [
                     'pos.counter', 'pos.discount', 'pos.hold',
                     'inventory.view', 'inventory.manage',
+                    'products.view', 'products.manage', 'categories.manage', 'units.manage',
                     'purchases.view', 'purchases.create',
                     'expenses.manage', 'reports.sales',
                     'users.manage', 'settings.manage',
@@ -109,6 +114,7 @@ class RoleAndPermissionSeeder extends Seeder
                 'is_system' => true,
                 'permissions' => [
                     'inventory.view', 'inventory.manage',
+                    'products.view', 'products.manage', 'categories.manage', 'units.manage',
                     'purchases.view',
                 ],
             ],
@@ -119,6 +125,7 @@ class RoleAndPermissionSeeder extends Seeder
                 'is_system' => true,
                 'permissions' => [
                     'inventory.view', 'purchases.view',
+                    'products.view',
                     'reports.sales',
                 ],
             ],

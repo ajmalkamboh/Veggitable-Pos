@@ -117,14 +117,54 @@ Measurement units for wholesale lots and retail counter sales.
 Master product classifications and operational expense accounts.
 - `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
 - `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `parent_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `categories(id)` ON DELETE SET NULL (Self-referencing hierarchy)
 - `name`: VARCHAR(100) NOT NULL
 - `name_ur`: VARCHAR(100) NULL
 - `slug`: VARCHAR(100) NOT NULL
 - `type`: VARCHAR(30) NOT NULL DEFAULT 'product' (INDEXED) (`product`, `expense`)
 - `description`: TEXT NULL
+- `image_path`: VARCHAR(255) NULL
 - `is_active`: BOOLEAN NOT NULL DEFAULT 1
 - `created_at`, `updated_at`: TIMESTAMP NULL
 - **Indexes**: `UNIQUE(tenant_id, type, slug)`
+
+### `unit_conversions`
+Wholesale lot and bulk packaging multipliers to base retail weight units.
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `from_unit_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `units(id)` ON DELETE CASCADE
+- `to_unit_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `units(id)` ON DELETE CASCADE
+- `multiplier`: DECIMAL(12, 4) NOT NULL (e.g. 1 Mann -> 40.0000 Kg)
+- `description`: VARCHAR(100) NULL
+- `created_at`, `updated_at`: TIMESTAMP NULL
+- **Indexes**: `UNIQUE(tenant_id, from_unit_id, to_unit_id)`
+
+### `products`
+Master catalog of vegetables, fruits, Mandi auction lots, and pre-packaged goods.
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `category_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `categories(id)` ON DELETE SET NULL
+- `subcategory_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `categories(id)` ON DELETE SET NULL
+- `name`: VARCHAR(255) NOT NULL
+- `name_ur`: VARCHAR(255) NULL
+- `code`: VARCHAR(50) NOT NULL
+- `barcode`: VARCHAR(50) NULL
+- `type`: VARCHAR(30) NOT NULL DEFAULT 'vegetable' (INDEXED) (`vegetable`, `fruit`, `mandi_lot`, `prepack`)
+- `purchase_unit_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `units(id)` ON DELETE SET NULL
+- `selling_unit_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `units(id)` ON DELETE SET NULL
+- `stock_unit_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `units(id)` ON DELETE SET NULL
+- `unit_conversion_factor`: DECIMAL(12, 4) NOT NULL DEFAULT 1.0000
+- `cost_price`: DECIMAL(12, 2) NOT NULL DEFAULT 0.00
+- `selling_price`: DECIMAL(12, 2) NOT NULL DEFAULT 0.00
+- `min_selling_price`: DECIMAL(12, 2) NOT NULL DEFAULT 0.00
+- `reorder_level`: DECIMAL(12, 2) NOT NULL DEFAULT 10.00
+- `is_perishable`: BOOLEAN NOT NULL DEFAULT 1
+- `shelf_life_days`: INT NOT NULL DEFAULT 3
+- `image_path`: VARCHAR(255) NULL
+- `is_active`: BOOLEAN NOT NULL DEFAULT 1
+- `created_at`, `updated_at`: TIMESTAMP NULL
+- `deleted_at`: TIMESTAMP NULL (Soft Deletes)
+- **Indexes**: `UNIQUE(tenant_id, code)`, `INDEX(tenant_id, barcode)`, `INDEX(tenant_id, type, is_active)`
 
 ---
 

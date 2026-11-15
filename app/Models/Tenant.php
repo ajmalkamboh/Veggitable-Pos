@@ -151,6 +151,22 @@ class Tenant extends Model
     }
 
     /**
+     * Master products catalog.
+     */
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class);
+    }
+
+    /**
+     * Unit conversion multipliers.
+     */
+    public function unitConversions(): HasMany
+    {
+        return $this->hasMany(UnitConversion::class);
+    }
+
+    /**
      * Check if tenant is fully onboarded.
      */
     public function isOnboarded(): bool

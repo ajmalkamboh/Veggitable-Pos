@@ -77,16 +77,16 @@
         </a>
       </li>
 
-      <li class="nav-item has-submenu">
-        <a class="nav-link" href="#" aria-expanded="false" data-tooltip="Products">
+      <li class="nav-item has-submenu {{ request()->routeIs('tenant.products.*') || request()->routeIs('tenant.categories.*') || request()->routeIs('tenant.units.*') ? 'show' : '' }}">
+        <a class="nav-link {{ request()->routeIs('tenant.products.*') || request()->routeIs('tenant.categories.*') || request()->routeIs('tenant.units.*') ? 'active' : '' }}" href="#" aria-expanded="false" data-tooltip="{{ __('Vegetables & Fruits') }}">
           <i class="ph-duotone ph-plant"></i>
-          <span>Vegetables & Fruits</span>
+          <span>{{ __('Vegetables & Fruits') }}</span>
           <i class="ph-duotone ph-caret-down nav-arrow"></i>
         </a>
         <ul class="nav-submenu">
-          <li><a class="nav-link" href="#">Product List</a></li>
-          <li><a class="nav-link" href="#">Categories</a></li>
-          <li><a class="nav-link" href="#">Units & Conversions</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.products.*') ? 'active' : '' }}" href="{{ route('tenant.products.index') }}">{{ __('Product List') }}</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.categories.*') ? 'active' : '' }}" href="{{ route('tenant.categories.index') }}">{{ __('Categories') }}</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.units.*') ? 'active' : '' }}" href="{{ route('tenant.units.index') }}">{{ __('Units & Conversions') }}</a></li>
         </ul>
       </li>
 

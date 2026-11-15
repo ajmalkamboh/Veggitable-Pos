@@ -9,6 +9,7 @@ use App\Http\Controllers\SuperAdmin\DashboardController as SuperAdminDashboardCo
 use App\Http\Controllers\SuperAdmin\ReportController as SuperAdminReportController;
 use App\Http\Controllers\SuperAdmin\SubscriptionPaymentController as SuperAdminPaymentController;
 use App\Http\Controllers\SuperAdmin\SubscriptionPlanController as SuperAdminPlanController;
+use App\Http\Controllers\SuperAdmin\SystemHealthController as SuperAdminSystemHealthController;
 use App\Http\Controllers\SuperAdmin\TenantController as SuperAdminTenantController;
 use App\Http\Controllers\Tenant\AccountingController as TenantAccountingController;
 use App\Http\Controllers\Tenant\AuditLogController as TenantAuditController;
@@ -103,6 +104,13 @@ Route::prefix('superadmin')->name('superadmin.')->middleware(['auth', 'superadmi
         Route::post('/generate', [SuperAdminBackupController::class, 'generate'])->name('generate')->middleware('throttle:backup-actions');
         Route::get('/download/{filename}', [SuperAdminBackupController::class, 'download'])->name('download');
         Route::delete('/{filename}', [SuperAdminBackupController::class, 'destroy'])->name('destroy');
+    });
+
+    // System Health & Launch Readiness (Phase 20)
+    Route::prefix('system-health')->name('health.')->group(function () {
+        Route::get('/', [SuperAdminSystemHealthController::class, 'index'])->name('index');
+        Route::post('/optimize', [SuperAdminSystemHealthController::class, 'optimize'])->name('optimize');
+        Route::post('/clear', [SuperAdminSystemHealthController::class, 'clear'])->name('clear');
     });
 });
 

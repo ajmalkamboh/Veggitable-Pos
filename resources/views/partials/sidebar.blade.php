@@ -74,6 +74,13 @@
         </a>
       </li>
 
+      <li class="nav-item">
+        <a class="nav-link {{ request()->routeIs('superadmin.health.*') ? 'active' : '' }}" href="{{ route('superadmin.health.index') }}" data-tooltip="System Health & Launch">
+          <i class="ph-duotone ph-heartbeat"></i>
+          <span>System Health & Launch</span>
+        </a>
+      </li>
+
       <!-- Tenant Operations Section -->
       <li class="nav-heading"><span>Shop Operations</span></li>
 

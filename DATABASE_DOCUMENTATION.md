@@ -620,3 +620,12 @@ Individual debit and credit line rows for each journal entry.
 
 ## 10. Super Admin, Roles & Security Tables
 - `subscription_plans`, `subscriptions`, `subscription_invoices`, `roles`, `permissions`, `permission_role`, `role_user`, `audit_logs`.
+
+---
+
+## 11. Dashboard & Business Reports Aggregations (Phase 15)
+Phase 15 introduces analytical business reporting and real-time dashboard calculations without requiring new database mutations. It utilizes optimized indexing on existing transactional tables:
+- **Sales Analytics**: Scopes `sales_invoices` (composite index `[tenant_id, branch_id, date]`) and `sales_invoice_items` (`[tenant_id, product_id]`) to derive gross sales, discounts, net turnover, FIFO cost of goods sold, collections, and gross margin percentages.
+- **Mandi Procurement**: Aggregates `purchase_invoices` (`[tenant_id, branch_id, date]`) for produce wholesale value, commission agent fees, mandi market charges, freight, and payables.
+- **Cash Register Z-Report**: Reconciles daily till collections (`sales_invoices.paid_amount`), mandi cash payouts (`purchase_invoices.paid_amount`), and petty cash vouchers (`expenses.amount` where `status = 'approved'`) to produce exact net daily till cash movement.
+- **Inventory Valuation**: Joins `inventory_stocks` and `products` on `[tenant_id, product_id]` using weighted or FIFO lot cost basis.

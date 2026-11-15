@@ -13,6 +13,7 @@ use App\Http\Controllers\Tenant\AccountingController as TenantAccountingControll
 use App\Http\Controllers\Tenant\AuditLogController as TenantAuditController;
 use App\Http\Controllers\Tenant\CategoryController as TenantCategoryController;
 use App\Http\Controllers\Tenant\CustomerController as TenantCustomerController;
+use App\Http\Controllers\Tenant\DashboardController as TenantDashboardController;
 use App\Http\Controllers\Tenant\ExpenseController as TenantExpenseController;
 use App\Http\Controllers\Tenant\InventoryController as TenantInventoryController;
 use App\Http\Controllers\Tenant\OnboardingController as TenantOnboardingController;
@@ -21,6 +22,7 @@ use App\Http\Controllers\Tenant\PosSessionController as TenantPosSessionControll
 use App\Http\Controllers\Tenant\ProductController as TenantProductController;
 use App\Http\Controllers\Tenant\PurchaseInvoiceController as TenantPurchaseInvoiceController;
 use App\Http\Controllers\Tenant\PurchaseReturnController as TenantPurchaseReturnController;
+use App\Http\Controllers\Tenant\ReportController as TenantReportController;
 use App\Http\Controllers\Tenant\RoleController as TenantRoleController;
 use App\Http\Controllers\Tenant\SalesInvoiceController as TenantSalesInvoiceController;
 use App\Http\Controllers\Tenant\StockAdjustmentController as TenantStockAdjustmentController;
@@ -133,6 +135,7 @@ Route::middleware(['auth', 'tenant.active', 'tenant.prevent_cross'])->group(func
 
     // Operational Business Routes (Gated by mandatory onboarding completion)
     Route::middleware('tenant.onboarded')->group(function () {
+        Route::get('/tenant/dashboard', [TenantDashboardController::class, 'index'])->name('tenant.dashboard');
         Route::get('/tenant/records', [TenantRecordController::class, 'index'])->name('tenant.records.index');
         Route::post('/tenant/records', [TenantRecordController::class, 'store'])->name('tenant.records.store');
         Route::get('/tenant/records/{record}', [TenantRecordController::class, 'show'])->name('tenant.records.show');
@@ -301,6 +304,14 @@ Route::middleware(['auth', 'tenant.active', 'tenant.prevent_cross'])->group(func
             Route::get('/trial-balance', [TenantAccountingController::class, 'trialBalance'])->name('trial-balance');
             Route::get('/profit-and-loss', [TenantAccountingController::class, 'profitAndLoss'])->name('pnl');
             Route::get('/balance-sheet', [TenantAccountingController::class, 'balanceSheet'])->name('balance-sheet');
+        });
+
+        // Business Reports Suite
+        Route::prefix('tenant/reports')->name('tenant.reports.')->group(function () {
+            Route::get('/', [TenantReportController::class, 'index'])->name('index');
+            Route::get('/sales', [TenantReportController::class, 'sales'])->name('sales');
+            Route::get('/purchases', [TenantReportController::class, 'purchases'])->name('purchases');
+            Route::get('/day-end', [TenantReportController::class, 'dayEnd'])->name('day-end');
         });
     });
 });

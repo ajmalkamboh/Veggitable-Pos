@@ -103,6 +103,17 @@ class SalesInvoice extends Model
         return (float) ($this->total_amount - $this->cost_amount);
     }
 
+    public function getStatusBadgeClassAttribute(): string
+    {
+        return match ($this->status) {
+            'paid' => 'bg-success-subtle text-success',
+            'partial' => 'bg-warning-subtle text-warning',
+            'due' => 'bg-danger-subtle text-danger',
+            'draft' => 'bg-secondary-subtle text-secondary',
+            default => 'bg-info-subtle text-info',
+        };
+    }
+
     public static function generateInvoiceNumber(Tenant $tenant): string
     {
         $year = date('Y');

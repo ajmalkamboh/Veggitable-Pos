@@ -71,6 +71,13 @@
       <li class="nav-heading"><span>Shop Operations</span></li>
 
       <li class="nav-item">
+        <a class="nav-link {{ request()->routeIs('tenant.dashboard') ? 'active' : '' }}" href="{{ route('tenant.dashboard') }}" data-tooltip="{{ __('Executive Dashboard') }}">
+          <i class="ph-duotone ph-gauge"></i>
+          <span>{{ __('Executive Dashboard') }}</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
         <a class="nav-link {{ request()->routeIs('tenant.pos.*') ? 'active' : '' }}" href="{{ route('tenant.pos.counter') }}" data-tooltip="{{ __('POS Cashier') }}">
           <i class="ph-duotone ph-shopping-cart"></i>
           <span>{{ __('POS Cashier Counter') }}</span>
@@ -172,17 +179,18 @@
         </ul>
       </li>
 
-      <li class="nav-item has-submenu">
-        <a class="nav-link" href="#" aria-expanded="false" data-tooltip="Reports">
+      <li class="nav-item has-submenu {{ request()->routeIs('tenant.reports.*') ? 'show' : '' }}">
+        <a class="nav-link {{ request()->routeIs('tenant.reports.*') ? 'active' : '' }}" href="#" aria-expanded="false" data-tooltip="{{ __('Reports') }}">
           <i class="ph-duotone ph-chart-bar"></i>
-          <span>Reports</span>
+          <span>{{ __('Reports & Analytics') }}</span>
           <i class="ph-duotone ph-caret-down nav-arrow"></i>
         </a>
         <ul class="nav-submenu">
-          <li><a class="nav-link" href="#">Sales Report</a></li>
-          <li><a class="nav-link" href="#">Purchase Report</a></li>
-          <li><a class="nav-link" href="#">Inventory Report</a></li>
-          <li><a class="nav-link" href="#">Financial Statements</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.reports.index') ? 'active' : '' }}" href="{{ route('tenant.reports.index') }}">{{ __('Reports Hub') }}</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.reports.sales') ? 'active' : '' }}" href="{{ route('tenant.reports.sales') }}">{{ __('Sales Analytics') }}</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.reports.purchases') ? 'active' : '' }}" href="{{ route('tenant.reports.purchases') }}">{{ __('Mandi Purchases') }}</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.reports.day-end') ? 'active' : '' }}" href="{{ route('tenant.reports.day-end') }}">{{ __('Daily Z-Report (روزانہ اختتامی رپورٹ)') }}</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.accounting.pnl') ? 'active' : '' }}" href="{{ route('tenant.accounting.pnl') }}">{{ __('Profit & Loss') }}</a></li>
         </ul>
       </li>
 

@@ -315,3 +315,28 @@
    - `Phase14FinancialAccountingTest`: 7 comprehensive test cases verifying auto-seeding of default chart of accounts, custom account creation, balanced JV posting with running balance updates, rejection of unbalanced vouchers, automated reversing entries, Trial Balance & P&L calculations, and multi-tenant isolation.
    - Complete application test suite: **112 tests passed, 577 assertions, 0 failures**.
    - Code formatted with Laravel Pint.
+
+## Phase 15: Executive Dashboard & Business Reports (Completed 2026-11-15)
+1. **Services & Business Logic**:
+   - `App\Services\ReportingService`:
+     - `getDashboardMetrics`: Compiles consolidated executive KPIs including Today's Sales, Transactions Count, Cash Collected, Credit Due, Month Sales, Month Gross Profit, Today/Month Mandi Purchases, Inventory Valuation (cost basis), Low Stock Alert Counts, Spoilage & Wastage Losses, Operating Expenses, and Total Available Cash & Bank Reserves. Features 7-day sales vs mandi procurement trends and 30-day top-selling produce rankings.
+     - `getSalesReport`: Multi-parameter filtered sales analytics (by branch, customer, date range, status) with gross sales, discounts, tax, net turnover, collections, receivables, COGS, gross profit, and gross profit margin percentage.
+     - `getPurchaseReport`: Mandi procurement analytics tracking lot produce subtotals, mandi commission agent fees, market committee charges, freight/mazdoori, total billing, and supplier payables.
+     - `getDayEndRegisterReport`: Daily Cash Register Z-Report calculating total counter cash inflows, mandi cash procurement payouts, petty operating expenses, and net daily till cash movement.
+2. **Controllers & Operations**:
+   - `Tenant\DashboardController`: Main live executive command center with real-time operational KPI cards, branch context switcher, 7-day trend chart, top produce list, recent POS sales, and low stock warnings.
+   - `Tenant\ReportController`:
+     - `index`: Central Reports & Business Intelligence Hub linking to Sales Analytics, Mandi Procurement, Day-End Z-Report, P&L, Balance Sheet, and General Ledger.
+     - `sales`: Filterable sales analytics report table with summary metrics and print layout.
+     - `purchases`: Mandi wholesale lot procurement report table with surcharges breakdown.
+     - `dayEnd`: Daily Cash Register Z-Report summary with cash movement audit ledger and safe deposit balance.
+3. **Views & UI Components**:
+   - `resources/views/tenant/dashboard.blade.php`: Modern EasyAdmin Pro dashboard with interactive metric tiles, CSS bar charts for 7-day trends, quick action shortcuts, and live alerts.
+   - `resources/views/tenant/reports/index.blade.php`: Reports hub card catalog.
+   - `resources/views/tenant/reports/sales.blade.php`: Sales turnover & gross margin report.
+   - `resources/views/tenant/reports/purchases.blade.php`: Mandi procurement & fees report.
+   - `resources/views/tenant/reports/day_end.blade.php`: Daily cash reconciliation Z-Report.
+4. **Testing & Verification**:
+   - `Phase15DashboardAndReportsTest`: 7 comprehensive test cases verifying dashboard metric calculations, branch filtering, reports hub accessibility, sales analytics calculations and filters, mandi procurement report calculations, day-end register Z-report cash reconciliation, and strict multi-tenant isolation.
+   - Complete application test suite: **119 tests passed, 638 assertions, 0 failures**.
+   - Code formatted with Laravel Pint.

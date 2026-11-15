@@ -231,3 +231,4 @@ gunzip < /var/www/veggitable/storage/app/backups/veggitable_backup_YYYY-MM-DD_HH
 - [x] Verify automated daily summaries command (`php artisan veggitable:daily-summaries`)
 - [x] Verify subscription billing cycle checks (`php artisan veggitable:check-subscriptions`)
 - [x] Full automated test suite passing (**154+ tests, 973+ assertions**)
+

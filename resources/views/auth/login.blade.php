@@ -87,6 +87,57 @@
     </button>
   </form>
 
+  <!-- Demo Accounts / Quick Credentials -->
+  <div class="card bg-light border-0 mt-4 rounded-3">
+    <div class="card-body p-3">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="badge bg-success-subtle text-success border border-success-subtle fw-semibold px-2 py-1">
+          <i class="bi bi-key-fill me-1"></i> Demo Credentials
+        </span>
+        <small class="text-muted">Click to auto-fill</small>
+      </div>
+      <div class="d-grid gap-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm text-start d-flex justify-content-between align-items-center py-1 px-2" onclick="fillCredentials('admin@veggitable.test', 'password')">
+          <div>
+            <strong class="d-block text-dark small">Super Admin</strong>
+            <span class="text-muted" style="font-size: 0.75rem;">admin@veggitable.test</span>
+          </div>
+          <span class="badge bg-secondary">Platform</span>
+        </button>
+        <button type="button" class="btn btn-outline-secondary btn-sm text-start d-flex justify-content-between align-items-center py-1 px-2" onclick="fillCredentials('owner@almadina.test', 'password')">
+          <div>
+            <strong class="d-block text-dark small">Shop Owner (Al-Madina)</strong>
+            <span class="text-muted" style="font-size: 0.75rem;">owner@almadina.test</span>
+          </div>
+          <span class="badge bg-primary">Owner</span>
+        </button>
+        <button type="button" class="btn btn-outline-secondary btn-sm text-start d-flex justify-content-between align-items-center py-1 px-2" onclick="fillCredentials('cashier@almadina.test', 'password')">
+          <div>
+            <strong class="d-block text-dark small">POS Cashier</strong>
+            <span class="text-muted" style="font-size: 0.75rem;">cashier@almadina.test</span>
+          </div>
+          <span class="badge bg-info">Terminal</span>
+        </button>
+      </div>
+      <div class="mt-2 text-center">
+        <span class="text-muted" style="font-size: 0.75rem;">Default Password: <code class="fw-bold text-dark">password</code></span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function fillCredentials(email, password) {
+      const emailInput = document.getElementById('email');
+      const passInput = document.getElementById('password');
+      if (emailInput && passInput) {
+        emailInput.value = email;
+        passInput.value = password;
+        emailInput.classList.add('bg-white');
+        passInput.classList.add('bg-white');
+      }
+    }
+  </script>
+
   <!-- Register Business Prompt -->
   <div class="border-top mt-4 pt-3 text-center">
     <p class="text-muted small mb-0">

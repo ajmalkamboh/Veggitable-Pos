@@ -318,22 +318,15 @@ class AutomationService
         $managerRole = Role::where('slug', 'manager')->first();
         $roleIds = array_filter([$ownerRole?->id, $managerRole?->id]);
 
-        $users = User::where('tenant_id', $tenant->id)
+        return User::where('tenant_id', $tenant->id)
             ->where(function ($q) use ($roleIds) {
-                $q->where('is_tenant_owner', true);
                 if (! empty($roleIds)) {
-                    $q->orWhereHas('roles', fn ($r) => $r->whereIn('roles.id', $roleIds));
+                    $q->whereIn('role_id', $roleIds)
+                        ->orWhereHas('roles', fn ($r) => $r->whereIn('roles.id', $roleIds));
                 }
             })
-            ->where('status', 'active')
-            ->get();
-
-        if ($users->isEmpty()) {
-            $users = User::where('tenant_id', $tenant->id)
-                ->where('status', 'active')
-                ->get();
-        }
-
-        return $users->all();
+            ->where('is_active', true)
+            ->get()
+            ->all();
     }
 }

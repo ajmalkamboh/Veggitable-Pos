@@ -96,16 +96,13 @@ class Phase17NotificationsAndAutomationTest extends TestCase
 
         $this->userA = User::create([
             'tenant_id' => $this->tenantA->id,
-            'current_branch_id' => $this->branchA->id,
+            'branch_id' => $this->branchA->id,
             'name' => 'Malik Jahangir',
             'email' => 'jahangir@isbfresh.pk',
             'password' => Hash::make('Secret123!'),
-            'is_tenant_owner' => true,
-            'status' => 'active',
+            'role_id' => $ownerRole->id,
+            'is_active' => true,
         ]);
-        if ($ownerRole) {
-            $this->userA->roles()->attach($ownerRole->id, ['tenant_id' => $this->tenantA->id]);
-        }
 
         // Tenant B
         $this->tenantB = Tenant::factory()->create([
@@ -125,16 +122,13 @@ class Phase17NotificationsAndAutomationTest extends TestCase
 
         $this->userB = User::create([
             'tenant_id' => $this->tenantB->id,
-            'current_branch_id' => $this->branchB->id,
+            'branch_id' => $this->branchB->id,
             'name' => 'Khan Zaman',
             'email' => 'zaman@pshmandi.pk',
             'password' => Hash::make('Secret123!'),
-            'is_tenant_owner' => true,
-            'status' => 'active',
+            'role_id' => $ownerRole->id,
+            'is_active' => true,
         ]);
-        if ($ownerRole) {
-            $this->userB->roles()->attach($ownerRole->id, ['tenant_id' => $this->tenantB->id]);
-        }
 
         // Master Data
         $cat = Category::create([

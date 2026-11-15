@@ -183,6 +183,22 @@ class Tenant extends Model
     }
 
     /**
+     * Purchase invoices.
+     */
+    public function purchaseInvoices(): HasMany
+    {
+        return $this->hasMany(PurchaseInvoice::class);
+    }
+
+    /**
+     * Purchase returns (Debit notes).
+     */
+    public function purchaseReturns(): HasMany
+    {
+        return $this->hasMany(PurchaseReturn::class);
+    }
+
+    /**
      * Unit conversion multipliers.
      */
     public function unitConversions(): HasMany

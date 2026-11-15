@@ -14,6 +14,8 @@ use App\Http\Controllers\Tenant\CategoryController as TenantCategoryController;
 use App\Http\Controllers\Tenant\CustomerController as TenantCustomerController;
 use App\Http\Controllers\Tenant\OnboardingController as TenantOnboardingController;
 use App\Http\Controllers\Tenant\ProductController as TenantProductController;
+use App\Http\Controllers\Tenant\PurchaseInvoiceController as TenantPurchaseInvoiceController;
+use App\Http\Controllers\Tenant\PurchaseReturnController as TenantPurchaseReturnController;
 use App\Http\Controllers\Tenant\RoleController as TenantRoleController;
 use App\Http\Controllers\Tenant\SupplierController as TenantSupplierController;
 use App\Http\Controllers\Tenant\UnitController as TenantUnitController;
@@ -182,6 +184,17 @@ Route::middleware(['auth', 'tenant.active', 'tenant.prevent_cross'])->group(func
             Route::put('/{customer}', [TenantCustomerController::class, 'update'])->name('update');
             Route::delete('/{customer}', [TenantCustomerController::class, 'destroy'])->name('destroy');
             Route::post('/{customer}/receipt', [TenantCustomerController::class, 'recordReceipt'])->name('receipt');
+        });
+
+        // Mandi Purchases & Procurement
+        Route::prefix('tenant/purchases')->name('tenant.purchases.')->group(function () {
+            Route::get('/', [TenantPurchaseInvoiceController::class, 'index'])->name('index');
+            Route::get('/create', [TenantPurchaseInvoiceController::class, 'create'])->name('create');
+            Route::post('/', [TenantPurchaseInvoiceController::class, 'store'])->name('store');
+            Route::get('/{purchaseInvoice}', [TenantPurchaseInvoiceController::class, 'show'])->name('show');
+            Route::get('/{purchaseInvoice}/print', [TenantPurchaseInvoiceController::class, 'print'])->name('print');
+            Route::delete('/{purchaseInvoice}', [TenantPurchaseInvoiceController::class, 'destroy'])->name('destroy');
+            Route::post('/{purchaseInvoice}/returns', [TenantPurchaseReturnController::class, 'store'])->name('returns.store');
         });
     });
 });

@@ -237,5 +237,82 @@ Audit trail and financial statement lines for suppliers and customer accounts.
 
 ---
 
-## 4. Super Admin, Roles & Security Tables
+## 4. Mandi Purchases & Procurement Tables (Phase 09)
+
+### `purchase_invoices`
+Mandi procurement bills, weighing scales, commissions, and supplier payables.
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `branch_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `branches(id)` ON DELETE CASCADE
+- `supplier_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `suppliers(id)` ON DELETE CASCADE
+- `invoice_no`: VARCHAR(50) NOT NULL (e.g. `PUR-2026-0001`)
+- `supplier_invoice_no`: VARCHAR(50) NULL (Mandi vendor parchi reference)
+- `date`: DATE NOT NULL (INDEXED)
+- `due_date`: DATE NULL
+- `status`: VARCHAR(20) NOT NULL DEFAULT 'received' (`received`, `pending`, `cancelled`)
+- `payment_status`: VARCHAR(20) NOT NULL DEFAULT 'unpaid' (`unpaid`, `partial`, `paid`)
+- `subtotal`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00 (Produce line totals)
+- `commission_rate`: DECIMAL(5, 2) NOT NULL DEFAULT 0.00 (Arhti % fee)
+- `commission_amount`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `mandi_fee`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00 (Chungi / Market Committee fee)
+- `freight_charges`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00 (Transport / Mazdoori)
+- `other_charges`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `discount`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `total_amount`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `paid_amount`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `financial_account_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `financial_accounts(id)` ON DELETE SET NULL
+- `notes`: TEXT NULL
+- `attachment_path`: VARCHAR(255) NULL (Photo of physical Mandi auction slip)
+- `created_by`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `users(id)` ON DELETE SET NULL
+- `created_at`, `updated_at`: TIMESTAMP NULL
+- `deleted_at`: TIMESTAMP NULL (Soft Deletes)
+- **Indexes**: `UNIQUE(tenant_id, invoice_no)`, `INDEX(tenant_id, branch_id, date)`, `INDEX(tenant_id, supplier_id, payment_status)`
+
+### `purchase_invoice_items`
+Individual vegetable and fruit line items with weighing scale gross/tare deduction.
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `purchase_invoice_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `purchase_invoices(id)` ON DELETE CASCADE
+- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `product_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `products(id)` ON DELETE RESTRICT
+- `unit_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `units(id)` ON DELETE SET NULL
+- `quantity`: DECIMAL(15, 3) NOT NULL (Number of bags/crates or standard unit count)
+- `gross_weight`: DECIMAL(15, 3) NULL (Vehicle/scale gross weight in kg)
+- `tare_weight`: DECIMAL(15, 3) NULL (Empty crate/packaging weight deduction in kg)
+- `net_weight`: DECIMAL(15, 3) NULL (Billed net produce weight: `gross - tare`)
+- `unit_price`: DECIMAL(15, 2) NOT NULL
+- `subtotal`: DECIMAL(15, 2) NOT NULL
+- `lot_number`: VARCHAR(50) NULL (Batch identifier for FIFO tracking)
+- `created_at`, `updated_at`: TIMESTAMP NULL
+- **Indexes**: `INDEX(tenant_id, purchase_invoice_id)`, `INDEX(tenant_id, product_id, lot_number)`
+
+### `purchase_returns`
+Debit notes against purchase invoices for rejected/spoiled produce.
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `purchase_invoice_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `purchase_invoices(id)` ON DELETE CASCADE
+- `supplier_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `suppliers(id)` ON DELETE CASCADE
+- `return_no`: VARCHAR(50) NOT NULL (e.g. `PR-2026-0001`)
+- `date`: DATE NOT NULL (INDEXED)
+- `reason`: VARCHAR(255) NOT NULL
+- `total_amount`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `refund_status`: VARCHAR(20) NOT NULL DEFAULT 'adjusted' (`adjusted`, `refunded`)
+- `created_by`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `users(id)` ON DELETE SET NULL
+- `created_at`, `updated_at`: TIMESTAMP NULL
+- `deleted_at`: TIMESTAMP NULL (Soft Deletes)
+- **Indexes**: `UNIQUE(tenant_id, return_no)`, `INDEX(tenant_id, purchase_invoice_id)`
+
+### `purchase_return_items`
+Produce returned to Mandi suppliers with rate and subtotal.
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `purchase_return_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `purchase_returns(id)` ON DELETE CASCADE
+- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `product_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `products(id)` ON DELETE RESTRICT
+- `quantity`: DECIMAL(15, 3) NOT NULL
+- `unit_price`: DECIMAL(15, 2) NOT NULL
+- `subtotal`: DECIMAL(15, 2) NOT NULL
+- `created_at`, `updated_at`: TIMESTAMP NULL
+
+---
+
+## 5. Super Admin, Roles & Security Tables
 - `subscription_plans`, `subscriptions`, `subscription_invoices`, `roles`, `permissions`, `permission_role`, `role_user`, `audit_logs`.

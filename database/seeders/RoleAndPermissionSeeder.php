@@ -31,6 +31,7 @@ class RoleAndPermissionSeeder extends Seeder
             // Purchases & Suppliers
             ['name' => 'View Purchases', 'slug' => 'purchases.view', 'module' => 'purchases', 'description' => 'View supplier purchases and bills.'],
             ['name' => 'Create Purchases', 'slug' => 'purchases.create', 'module' => 'purchases', 'description' => 'Create new purchase invoices and receive lots.'],
+            ['name' => 'Manage Purchases', 'slug' => 'purchases.manage', 'module' => 'purchases', 'description' => 'Cancel invoices, process debit notes and returns.'],
             ['name' => 'View Suppliers', 'slug' => 'suppliers.view', 'module' => 'suppliers', 'description' => 'View Mandi commission agents and farmers directory.'],
             ['name' => 'Manage Suppliers', 'slug' => 'suppliers.manage', 'module' => 'suppliers', 'description' => 'Create, edit, and manage supplier profiles and ledger balances.'],
 
@@ -78,7 +79,7 @@ class RoleAndPermissionSeeder extends Seeder
                     'pos.counter', 'pos.discount', 'pos.hold',
                     'inventory.view', 'inventory.manage',
                     'products.view', 'products.manage', 'categories.manage', 'units.manage',
-                    'purchases.view', 'purchases.create',
+                    'purchases.view', 'purchases.create', 'purchases.manage',
                     'suppliers.view', 'suppliers.manage',
                     'customers.view', 'customers.manage',
                     'expenses.manage', 'reports.sales',

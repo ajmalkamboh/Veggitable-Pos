@@ -130,3 +130,38 @@
    - `Phase08SupplierCustomerManagementTest`: 8 test cases covering opening balance ledger creation, supplier payment processing, customer receipt collection, credit limit enforcement, bilingual search, tenant isolation, and role permissions.
    - Complete application test suite: **70 tests passed, 326 assertions, 0 failures**.
    - Code formatted with Laravel Pint.
+
+
+---
+
+## [Phase 09] - Purchase Management
+**Date**: 2026-11-15
+**Status**: COMPLETED
+
+1. **Database Schema & Migrations**:
+   - `2026_11_15_044256_create_purchases_tables.php`:
+     - `purchase_invoices`: (`tenant_id`, `branch_id`, `supplier_id`, `invoice_no`, `supplier_invoice_no`, `date`, `due_date`, `status`, `payment_status`, `subtotal`, `commission_rate`, `commission_amount`, `mandi_fee`, `freight_charges`, `other_charges`, `discount`, `total_amount`, `paid_amount`, `financial_account_id`, `notes`, `attachment_path`, `created_by`, timestamps, soft deletes).
+     - `purchase_invoice_items`: (`purchase_invoice_id`, `tenant_id`, `product_id`, `unit_id`, `quantity`, `gross_weight`, `tare_weight`, `net_weight`, `unit_price`, `subtotal`, `lot_number`, timestamps).
+     - `purchase_returns`: (`tenant_id`, `purchase_invoice_id`, `supplier_id`, `return_no`, `date`, `reason`, `total_amount`, `refund_status`, `created_by`, timestamps, soft deletes).
+     - `purchase_return_items`: (`purchase_return_id`, `tenant_id`, `product_id`, `quantity`, `unit_price`, `subtotal`, timestamps).
+2. **Models & Business Calculations**:
+   - `PurchaseInvoice`: Relationships (`branch`, `supplier`, `items`, `returns`, `financialAccount`, `creator`), `due_balance` and `due_amount` accessors, `generateInvoiceNumber(Tenant $tenant)` (`PUR-YYYY-XXXX`).
+   - `PurchaseInvoiceItem`: Product lot tracking, tare weight scale deduction `net_weight = max(0, gross_weight - tare_weight)`.
+   - `PurchaseReturn`: Debit note numbering `generateReturnNumber(Tenant $tenant)` (`PR-YYYY-XXXX`).
+   - `Supplier` & `Tenant`: Added relationships `purchaseInvoices()` and `purchaseReturns()`.
+3. **Controllers & Operations**:
+   - `Tenant\PurchaseInvoiceController`:
+     - `index`: Overview cards (Total Purchases, Outstanding Payables, Today's Purchases, Total Invoices), search and status filtering, pagination.
+     - `create` & `store`: Dynamic multi-item lot entry, real-time gross/tare/net scale calculations, Mandi commission, Market fee (Chungi), Freight (Mazdoori) additions, immediate cash/bank settlement with account debit, supplier balance update, automated supplier ledger entry.
+     - `show`: Detailed invoice inspection, item lots table, Mandi cost breakdown, payment settlement status, attachment preview, debit note modal.
+     - `print`: A4 & thermal printable Mandi purchase voucher with bilingual English/Urdu headers, item breakdown, and purchaser/arhti signatures.
+     - `destroy`: Atomic invoice cancellation reversing supplier balance, financial account balance (if paid), and recording cancellation ledger entry.
+   - `Tenant\PurchaseReturnController`:
+     - `store`: Records debit notes against received invoices for spoiled/rejected produce, deducts supplier payable, records debit entry in party ledger.
+4. **Views & Menus**:
+   - `resources/views/tenant/purchases/index.blade.php`, `create.blade.php`, `show.blade.php`, `print.blade.php`.
+   - Sidebar updated with "Mandi Purchases" navigation.
+5. **Testing & Verification**:
+   - `Phase09PurchaseManagementTest`: 7 comprehensive test cases verifying invoice creation, tare weight calculations, Mandi commission & fees, immediate cash settlement, debit notes, invoice cancellation reversal, tenant isolation, and print rendering.
+   - Complete application test suite: **77 tests passed, 379 assertions, 0 failures**.
+   - Code formatted with Laravel Pint.

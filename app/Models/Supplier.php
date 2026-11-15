@@ -61,6 +61,11 @@ class Supplier extends Model
             ->orderBy('id', 'desc');
     }
 
+    public function purchaseInvoices(): HasMany
+    {
+        return $this->hasMany(PurchaseInvoice::class);
+    }
+
     /**
      * Generate next sequential supplier code.
      */

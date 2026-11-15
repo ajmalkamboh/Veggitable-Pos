@@ -210,6 +210,13 @@
         </ul>
       </li>
 
+      <li class="nav-item {{ request()->routeIs('tenant.notifications.*') ? 'active' : '' }}">
+        <a class="nav-link {{ request()->routeIs('tenant.notifications.*') ? 'active' : '' }}" href="{{ route('tenant.notifications.index') }}" data-tooltip="{{ __('Alerts & Automation') }}">
+          <i class="ph-duotone ph-bell-ringing"></i>
+          <span>{{ __('Alerts & Automation') }}</span>
+        </a>
+      </li>
+
       <li class="nav-item {{ request()->routeIs('tenant.hardware.*') ? 'active' : '' }}">
         <a class="nav-link {{ request()->routeIs('tenant.hardware.*') ? 'active' : '' }}" href="{{ route('tenant.hardware.index') }}" data-tooltip="{{ __('Hardware & Scales') }}">
           <i class="ph-duotone ph-cpu"></i>

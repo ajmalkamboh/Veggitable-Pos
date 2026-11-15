@@ -373,3 +373,44 @@
    - `Phase16PrintingAndHardwareIntegrationTest`: 10 comprehensive test cases verifying 80mm thermal receipt rendering, A4 sales tax invoice, A4 mandi purchase bill, customer statement, supplier statement, payment and receipt vouchers with spelled-out amounts, stock sheet and wastage reports, EAN-13 weight/price barcode decoding, ESC/POS commands, hardware settings persistence, and tenant isolation enforcement.
    - Complete application test suite: **129 tests passed, 730 assertions, 0 failures**.
    - Code formatted with Laravel Pint.
+
+## Phase 17: Notifications & SaaS Automation (Completed 2026-11-15)
+1. **Database Schema & Migrations**:
+   - `database/migrations/2026_11_15_124515_create_notifications_table.php`: Standard Laravel multi-channel notifications table enriched with `tenant_id` foreign key and composite index `[tenant_id, read_at]` for fast multi-tenant querying.
+2. **Notification Classes (`app/Notifications/`)**:
+   - `LowStockAlertNotification`: Dispatches high-priority alert when produce quantity falls below reorder threshold, identifying branch, current stock, and reorder point in English & Urdu.
+   - `DailySalesSummaryNotification`: Evening digest compiling gross turnover, cash collected, credit receivables, transaction volume, and gross profit.
+   - `DailyWastageSummaryNotification`: Daily cull and spoilage digest compiling total loss monetary cost, culling quantity in kilograms, and voucher count.
+   - `CustomerBalanceAlertNotification`: Credit risk notification when customer overdue receivables exceed safety limit or credit threshold.
+   - `SupplierPaymentReminderNotification`: Mandi commission agent (aarthi) payable alert detailing unpaid lots and balance.
+   - `StockAdjustmentAlertNotification`: Audit alert for physical inventory count variance and stock reconciliations.
+   - `SubscriptionExpiryNotification`: SaaS billing reminder triggered at 7, 3, and 1 days prior to subscription renewal date.
+   - `SystemAlertNotification`: General platform and operational broadcast alert.
+3. **Services & Business Logic (`App\Services\AutomationService`)**:
+   - `checkLowStock`: Scans produce inventory against reorder levels across branches and dispatches notifications to business owners and inventory managers.
+   - `sendDailySalesSummary`: Aggregates day's sales invoices, calculating net turnover, cash inflows, credit balances, and gross margins.
+   - `sendDailyWastageSummary`: Aggregates approved spoilage vouchers and calculates cull quantities and financial losses.
+   - `checkCustomerBalances`: Detects customer accounts with outstanding balances exceeding defined credit thresholds.
+   - `checkSupplierPayables`: Detects supplier/aarthi accounts with unpaid mandi purchases.
+   - `checkSubscriptionExpiries`: Scans active SaaS tenants nearing subscription or trial expiration dates.
+   - `notifyStockAdjustment`: Notifies management of physical stock audit variances.
+   - `sendSms` & `sendWhatsApp`: Gateway adapters saving configuration in tenant preferences without exposing credentials.
+4. **Artisan Console Automation Commands**:
+   - `veggitable:daily-summaries`: Scheduled command executing daily sales and wastage summaries for all active SaaS businesses.
+   - `veggitable:check-subscriptions`: Scheduled command scanning expiring subscriptions and dispatching renewals notices.
+5. **Controllers & Operations (`Tenant\NotificationController`)**:
+   - `index`: Bilingual notifications inbox with unread/read filters, category badges, relative timestamps, and one-click actions.
+   - `markAsRead`: Marks individual notification as read.
+   - `markAllAsRead`: Marks all tenant notifications as read.
+   - `destroy`: Safely removes notification.
+   - `settings` & `updateSettings`: Notification channel toggles (in-app, email, SMS, WhatsApp) and threshold limits stored in tenant preferences.
+   - `triggerAutomation`: Manual trigger for owner on-demand checks (low stock, customer credit, supplier payables).
+6. **UI & Navigation**:
+   - `resources/views/tenant/notifications/index.blade.php`: Rich notification inbox with color-coded severity pills, Urdu Nastaliq support, and quick mark-read actions.
+   - `resources/views/tenant/notifications/settings.blade.php`: Automated alerts configuration form.
+   - `resources/views/partials/header.blade.php`: Dynamic unread notification counter badge with pulse animation and drop-down preview.
+   - `resources/views/partials/sidebar.blade.php`: Dedicated "Alerts & Automation" navigation item.
+7. **Testing & Verification**:
+   - `Phase17NotificationsAndAutomationTest`: 8 comprehensive test cases verifying low stock detection, daily sales summary calculations, daily wastage calculations, customer credit and supplier payable alerts, subscription expiry scanning, notification center UI, settings persistence, and multi-tenant notification isolation.
+   - Complete application test suite: **137 tests passed, 773 assertions, 0 failures**.
+   - Code formatted with Laravel Pint.

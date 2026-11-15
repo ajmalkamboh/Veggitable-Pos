@@ -17,6 +17,7 @@ use App\Http\Controllers\Tenant\DashboardController as TenantDashboardController
 use App\Http\Controllers\Tenant\ExpenseController as TenantExpenseController;
 use App\Http\Controllers\Tenant\HardwareController as TenantHardwareController;
 use App\Http\Controllers\Tenant\InventoryController as TenantInventoryController;
+use App\Http\Controllers\Tenant\NotificationController as TenantNotificationController;
 use App\Http\Controllers\Tenant\OnboardingController as TenantOnboardingController;
 use App\Http\Controllers\Tenant\PosController as TenantPosController;
 use App\Http\Controllers\Tenant\PosSessionController as TenantPosSessionController;
@@ -344,6 +345,17 @@ Route::middleware(['auth', 'tenant.active', 'tenant.prevent_cross'])->group(func
             Route::post('/settings', [TenantHardwareController::class, 'updateSettings'])->name('settings');
             Route::post('/parse-barcode', [TenantHardwareController::class, 'parseBarcode'])->name('parse-barcode');
             Route::get('/test-print', [TenantHardwareController::class, 'testPrint'])->name('test-print');
+        });
+
+        // Notifications & SaaS Automation (Phase 17)
+        Route::prefix('tenant/notifications')->name('tenant.notifications.')->group(function () {
+            Route::get('/', [TenantNotificationController::class, 'index'])->name('index');
+            Route::post('/read-all', [TenantNotificationController::class, 'markAllAsRead'])->name('read-all');
+            Route::post('/{id}/read', [TenantNotificationController::class, 'markAsRead'])->name('read');
+            Route::delete('/{id}', [TenantNotificationController::class, 'destroy'])->name('destroy');
+            Route::get('/settings', [TenantNotificationController::class, 'settings'])->name('settings');
+            Route::post('/settings', [TenantNotificationController::class, 'updateSettings'])->name('settings.update');
+            Route::post('/trigger', [TenantNotificationController::class, 'triggerAutomation'])->name('trigger');
         });
     });
 });

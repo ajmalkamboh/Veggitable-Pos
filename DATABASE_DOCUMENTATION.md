@@ -643,3 +643,27 @@ Phase 16 stores hardware and device configurations within the tenant's JSON `set
 - `scale_serial_baud`: Serial baud rate for direct RS232 stream (e.g. 9600, 4800 bps).
 - `bilingual_receipt`: Boolean flag enabling bilingual Urdu/English receipt printing.
 - `receipt_footer_text`: Custom thank-you greeting printed at the base of thermal slips.
+
+---
+
+## 13. Notifications & Automation Tables (Phase 17)
+
+### `notifications`
+Multi-channel notification inbox table storing automated and triggered business alerts with tenant scoping.
+- `id`: CHAR(36) PRIMARY KEY (UUID)
+- `tenant_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `type`: VARCHAR(255) NOT NULL (Notification FQCN e.g. `App\Notifications\LowStockAlertNotification`)
+- `notifiable_type`: VARCHAR(255) NOT NULL
+- `notifiable_id`: BIGINT UNSIGNED NOT NULL
+- `data`: TEXT NOT NULL (JSON payload with title, title_ur, message, message_ur, severity, action_url, meta)
+- `read_at`: TIMESTAMP NULL
+- `created_at`, `updated_at`: TIMESTAMP NULL
+- **Indexes**: `INDEX(tenant_id)`, `INDEX(tenant_id, read_at)`, `INDEX(notifiable_type, notifiable_id)`
+
+### Tenant Notification Settings (`tenants.settings['notifications']`)
+- `channels`: Array of enabled notification channels (`database`, `email`, `sms`, `whatsapp`).
+- `low_stock_threshold_multiplier`: Multiplier for aggressive low stock detection (default 1.0).
+- `daily_sales_digest`: Boolean toggle for evening sales digest.
+- `daily_wastage_digest`: Boolean toggle for evening spoilage summary.
+- `credit_limit_alert`: Boolean toggle for overdue customer credit alerts.
+- `supplier_payable_alert`: Boolean toggle for mandi commission agent payable reminders.

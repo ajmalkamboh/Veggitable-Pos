@@ -94,17 +94,35 @@
       </button>
 
       <!-- Notifications Dropdown -->
+      @php
+        $unreadNotifCount = auth()->check() ? auth()->user()->unreadNotifications()->count() : 0;
+        $recentNotifs = auth()->check() ? auth()->user()->unreadNotifications()->limit(5)->get() : collect();
+      @endphp
       <div class="header-action dropdown notification-dropdown">
-        <button class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+        <button class="dropdown-toggle position-relative" data-bs-toggle="dropdown" aria-expanded="false">
           <i class="bi bi-bell"></i>
-          <span class="badge">0</span>
+          @if($unreadNotifCount > 0)
+            <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill" style="font-size: 9px;">
+              {{ $unreadNotifCount }}
+            </span>
+          @endif
         </button>
-        <div class="dropdown-menu dropdown-menu-end">
-          <div class="notification-header">
-            <h6>{{ __('common.notifications') }}</h6>
+        <div class="dropdown-menu dropdown-menu-end shadow-sm" style="width: 320px;">
+          <div class="notification-header d-flex justify-content-between align-items-center p-3 border-bottom">
+            <h6 class="mb-0 fw-bold">{{ __('common.notifications') }}</h6>
+            <a href="{{ route('tenant.notifications.index') }}" class="small text-decoration-none">{{ __('View All') }}</a>
           </div>
-          <div class="notification-list p-3 text-center text-muted small">
-            No unread notifications
+          <div class="notification-list p-2">
+            @forelse($recentNotifs as $rn)
+              <a href="{{ route('tenant.notifications.index') }}" class="d-block p-2 text-decoration-none text-dark border-bottom">
+                <div class="fw-semibold small text-truncate">{{ $rn->data['title'] ?? 'Alert' }}</div>
+                <div class="text-muted small text-truncate" style="font-size: 11px;">{{ $rn->data['message'] ?? '' }}</div>
+              </a>
+            @empty
+              <div class="p-3 text-center text-muted small">
+                {{ __('No unread notifications') }}
+              </div>
+            @endforelse
           </div>
         </div>
       </div>

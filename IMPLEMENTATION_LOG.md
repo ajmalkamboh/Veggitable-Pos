@@ -340,3 +340,36 @@
    - `Phase15DashboardAndReportsTest`: 7 comprehensive test cases verifying dashboard metric calculations, branch filtering, reports hub accessibility, sales analytics calculations and filters, mandi procurement report calculations, day-end register Z-report cash reconciliation, and strict multi-tenant isolation.
    - Complete application test suite: **119 tests passed, 638 assertions, 0 failures**.
    - Code formatted with Laravel Pint.
+
+## Phase 16: Printing, Receipts & Hardware Integration (Completed 2026-11-15)
+1. **Services & Business Logic**:
+   - `App\Services\HardwareIntegrationService`:
+     - `parseWeightBarcode`: Decodes electronic produce scale EAN-13 barcodes (`20AAAAAWWWWW[C]`), extracting 5-digit PLU product code and 5-digit weight in grams into decimal kilograms.
+     - `parsePriceBarcode`: Decodes price-embedded produce scale EAN-13 barcodes (`21AAAAAPPPPP[C]`).
+     - `getEscPosCommands`: Compiles standard ESC/POS hex commands for cash drawer kick (pin 2 & pin 5), auto-paper cutting (full, partial, feed), bold font weight, double width/height, and text alignment.
+     - `getDeviceProfiles`: Hardware catalog of tested electronic weighing scales (CAS, Mettler Toledo, DIGI, Rongta, Citizen) and thermal receipt printers (Epson, Rongta, Xprinter, Bixolon, Sunmi).
+   - `App\Services\PrintService`:
+     - Compiles and formats printing payloads for 10 core business documents: 80mm/58mm thermal receipts, A4 sales invoices, A4 mandi procurement bills, customer statements of account, supplier/aarthi statements, payment disbursement vouchers, receipt vouchers, stock valuation audit sheets, and wastage audit sheets. Includes `numberToWords` conversion for financial vouchers.
+2. **Controllers & Operations**:
+   - `Tenant\PrintController`:
+     - `salesThermal`: 80mm/58mm thermal receipt rendering with produce weights, unit rates, item discounts, bill totals, tender split, customer remaining credit balance, and Urdu Nastaliq thank-you note.
+     - `salesA4`: Professional A4 tax invoice layout with company header, buyer details, table of items, terms, and dual signatures.
+     - `purchaseA4`: A4 Mandi procurement bill with lot produce items, commission agent fees, market committee tax, freight, and payables.
+     - `customerStatement`: Customer running ledger statement with invoices, payments, and outstanding balances.
+     - `supplierStatement`: Mandi commission agent / supplier ledger with procurement lots, commission deductions, and payables.
+     - `paymentVoucher`: Cash/bank outflow disbursement voucher with amounts in figures and words.
+     - `receiptVoucher`: Cash/bank money collection voucher with invoice reference and cashier signature.
+     - `stockReport`: A4 physical inventory count and valuation audit sheet (cost and retail bases).
+     - `wastageReport`: A4 produce spoilage, drying shrinkage, and cull loss audit sheet.
+   - `Tenant\HardwareController`:
+     - `index`: Device management center with printer roll selection (80mm vs 58mm vs A4), auto-cutter toggles, drawer kick toggles, scale serial port baud rates, and live barcode decoding tester.
+     - `updateSettings`: Saves tenant hardware preferences to `tenants.settings['hardware']`.
+     - `parseBarcode`: API endpoint for fast barcode scanning and weighing scale decoding verification.
+     - `testPrint`: Diagnostic thermal test slip verifying UTF-8, ESC/POS, and Urdu characters.
+3. **Views & Templates**:
+   - `resources/views/tenant/printing/`: `sales_thermal.blade.php`, `sales_a4.blade.php`, `purchase_a4.blade.php`, `customer_statement.blade.php`, `supplier_statement.blade.php`, `payment_voucher.blade.php`, `receipt_voucher.blade.php`, `stock_sheet.blade.php`, `wastage_sheet.blade.php`.
+   - `resources/views/tenant/hardware/`: `index.blade.php`, `test_print.blade.php`.
+4. **Testing & Verification**:
+   - `Phase16PrintingAndHardwareIntegrationTest`: 10 comprehensive test cases verifying 80mm thermal receipt rendering, A4 sales tax invoice, A4 mandi purchase bill, customer statement, supplier statement, payment and receipt vouchers with spelled-out amounts, stock sheet and wastage reports, EAN-13 weight/price barcode decoding, ESC/POS commands, hardware settings persistence, and tenant isolation enforcement.
+   - Complete application test suite: **129 tests passed, 730 assertions, 0 failures**.
+   - Code formatted with Laravel Pint.

@@ -41,4 +41,14 @@ class SalesInvoicePayment extends Model
     {
         return $this->belongsTo(FinancialAccount::class);
     }
+
+    public function getPaymentMethodAttribute(): string
+    {
+        return $this->method ?? 'cash';
+    }
+
+    public function getTransactionReferenceAttribute(): ?string
+    {
+        return $this->reference_no;
+    }
 }

@@ -629,3 +629,17 @@ Phase 15 introduces analytical business reporting and real-time dashboard calcul
 - **Mandi Procurement**: Aggregates `purchase_invoices` (`[tenant_id, branch_id, date]`) for produce wholesale value, commission agent fees, mandi market charges, freight, and payables.
 - **Cash Register Z-Report**: Reconciles daily till collections (`sales_invoices.paid_amount`), mandi cash payouts (`purchase_invoices.paid_amount`), and petty cash vouchers (`expenses.amount` where `status = 'approved'`) to produce exact net daily till cash movement.
 - **Inventory Valuation**: Joins `inventory_stocks` and `products` on `[tenant_id, product_id]` using weighted or FIFO lot cost basis.
+
+---
+
+## 12. Printing & Hardware Integration Configuration (Phase 16)
+Phase 16 stores hardware and device configurations within the tenant's JSON `settings` column (`tenants.settings['hardware']`), eliminating the need for structural schema changes while supporting flexible per-tenant device setups:
+- `printer_type`: Thermal printer roll width (`thermal_80mm`, `thermal_58mm`, `a4_standard`).
+- `auto_cut_paper`: Boolean flag controlling transmission of ESC/POS cutter signal (`\x1d\x56\x00`).
+- `open_cash_drawer`: Boolean flag controlling pulse signal to cash drawer kick pin (`\x1b\x70\x00\x19\xfa`).
+- `weighing_scale_mode`: Weighing integration protocol (`barcode_embedded`, `serial_rs232`, `manual`).
+- `weight_barcode_prefix`: Standard prefix for produce scale barcodes (`20`, `02`, `24`).
+- `price_barcode_prefix`: Standard prefix for price-embedded scale barcodes (`21`, `01`).
+- `scale_serial_baud`: Serial baud rate for direct RS232 stream (e.g. 9600, 4800 bps).
+- `bilingual_receipt`: Boolean flag enabling bilingual Urdu/English receipt printing.
+- `receipt_footer_text`: Custom thank-you greeting printed at the base of thermal slips.

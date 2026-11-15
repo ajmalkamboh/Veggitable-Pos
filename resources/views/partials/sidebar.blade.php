@@ -210,6 +210,13 @@
         </ul>
       </li>
 
+      <li class="nav-item {{ request()->routeIs('tenant.hardware.*') ? 'active' : '' }}">
+        <a class="nav-link {{ request()->routeIs('tenant.hardware.*') ? 'active' : '' }}" href="{{ route('tenant.hardware.index') }}" data-tooltip="{{ __('Hardware & Scales') }}">
+          <i class="ph-duotone ph-cpu"></i>
+          <span>{{ __('Hardware & Scales') }}</span>
+        </a>
+      </li>
+
       <li class="nav-item">
         <a class="nav-link" href="#" data-tooltip="Settings">
           <i class="ph-duotone ph-gear"></i>

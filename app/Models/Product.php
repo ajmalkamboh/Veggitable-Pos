@@ -92,6 +92,11 @@ class Product extends Model
         return round((($this->selling_price - $this->cost_price) / $this->cost_price) * 100, 1);
     }
 
+    public function getUrduNameAttribute(): ?string
+    {
+        return $this->name_ur;
+    }
+
     /**
      * Generate unique sequential barcode.
      */

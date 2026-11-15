@@ -15,10 +15,12 @@ use App\Http\Controllers\Tenant\CategoryController as TenantCategoryController;
 use App\Http\Controllers\Tenant\CustomerController as TenantCustomerController;
 use App\Http\Controllers\Tenant\DashboardController as TenantDashboardController;
 use App\Http\Controllers\Tenant\ExpenseController as TenantExpenseController;
+use App\Http\Controllers\Tenant\HardwareController as TenantHardwareController;
 use App\Http\Controllers\Tenant\InventoryController as TenantInventoryController;
 use App\Http\Controllers\Tenant\OnboardingController as TenantOnboardingController;
 use App\Http\Controllers\Tenant\PosController as TenantPosController;
 use App\Http\Controllers\Tenant\PosSessionController as TenantPosSessionController;
+use App\Http\Controllers\Tenant\PrintController as TenantPrintController;
 use App\Http\Controllers\Tenant\ProductController as TenantProductController;
 use App\Http\Controllers\Tenant\PurchaseInvoiceController as TenantPurchaseInvoiceController;
 use App\Http\Controllers\Tenant\PurchaseReturnController as TenantPurchaseReturnController;
@@ -312,6 +314,36 @@ Route::middleware(['auth', 'tenant.active', 'tenant.prevent_cross'])->group(func
             Route::get('/sales', [TenantReportController::class, 'sales'])->name('sales');
             Route::get('/purchases', [TenantReportController::class, 'purchases'])->name('purchases');
             Route::get('/day-end', [TenantReportController::class, 'dayEnd'])->name('day-end');
+        });
+
+        // Professional Printing & Document Vouchers (Phase 16)
+        Route::prefix('tenant/print')->name('tenant.print.')->group(function () {
+            // Thermal Receipts
+            Route::get('/thermal/sales/{salesInvoice}', [TenantPrintController::class, 'salesThermal'])->name('thermal.sales');
+
+            // A4 Tax & Standard Invoices
+            Route::get('/a4/sales/{salesInvoice}', [TenantPrintController::class, 'salesA4'])->name('a4.sales');
+            Route::get('/a4/purchases/{purchaseInvoice}', [TenantPrintController::class, 'purchaseA4'])->name('a4.purchases');
+
+            // Party Account Statements
+            Route::get('/a4/customers/{customer}/statement', [TenantPrintController::class, 'customerStatement'])->name('a4.customer-statement');
+            Route::get('/a4/suppliers/{supplier}/statement', [TenantPrintController::class, 'supplierStatement'])->name('a4.supplier-statement');
+
+            // Financial Payment & Receipt Vouchers
+            Route::get('/a4/payment-voucher/{expense}', [TenantPrintController::class, 'paymentVoucher'])->name('a4.payment-voucher');
+            Route::get('/a4/receipt-voucher/{payment}', [TenantPrintController::class, 'receiptVoucher'])->name('a4.receipt-voucher');
+
+            // Inventory & Spoilage Audit Sheets
+            Route::get('/a4/stock-report', [TenantPrintController::class, 'stockReport'])->name('a4.stock-report');
+            Route::get('/a4/wastage-report', [TenantPrintController::class, 'wastageReport'])->name('a4.wastage-report');
+        });
+
+        // Hardware & Device Integration (Scales, Thermal Printers, Scanners)
+        Route::prefix('tenant/hardware')->name('tenant.hardware.')->group(function () {
+            Route::get('/', [TenantHardwareController::class, 'index'])->name('index');
+            Route::post('/settings', [TenantHardwareController::class, 'updateSettings'])->name('settings');
+            Route::post('/parse-barcode', [TenantHardwareController::class, 'parseBarcode'])->name('parse-barcode');
+            Route::get('/test-print', [TenantHardwareController::class, 'testPrint'])->name('test-print');
         });
     });
 });

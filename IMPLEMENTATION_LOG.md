@@ -289,3 +289,29 @@
    - `Phase13ExpenseManagementTest`: 7 comprehensive test cases verifying approved expense creation with account balance decrement, pending approval gating, manager rejection, voucher cancellation with balance refund, receipt attachment upload handling, tenant isolation, and bilingual labels.
    - Complete application test suite: **105 tests passed, 550 assertions, 0 failures**.
    - Code formatted with Laravel Pint.
+
+## Phase 14: Financial Accounting & Ledgers (Completed 2026-11-15)
+1. **Database Schema & Migrations**:
+   - `chart_of_accounts`: Standard 5-tier accounting tree (`asset`, `liability`, `equity`, `revenue`, `expense`) with code, English name, Urdu name, subtype, opening balance, current running balance, system flag, and active status.
+   - `journal_entries`: Double-entry journal voucher headers (`JV-YYMM-XXXXX`) with date, branch, reference type (`manual`, `purchase`, `sale`, `expense`, `wastage`, `transfer`), reference number, narration, total debit, total credit, status (`posted`, `draft`, `reversed`), and creator.
+   - `journal_entry_lines`: Individual debit and credit rows linked to accounts with line memos.
+2. **Business Models & Services**:
+   - Models: `ChartOfAccount`, `JournalEntry`, `JournalEntryLine`.
+   - `App\Services\AccountingService`:
+     - `seedDefaultChartOfAccounts`: Auto-seeds 17 standard vegetable retail & wholesale accounts across all 5 classes.
+     - `createJournalEntry`: Enforces strict double-entry balancing (`total_debits === total_credits`), generates sequential numbering, and updates account balances according to normal balance side (Debit normal for Assets/Expenses; Credit normal for Liabilities/Equity/Revenue).
+     - `reverseJournalEntry`: Generates automated offsetting reversal vouchers flipping debits and credits, marking original voucher reversed and restoring account balances.
+     - `getTrialBalance`: Compiles active account debit/credit balances and verifies system-wide double-entry equilibrium.
+     - `getProfitAndLoss`: Real-time Income Statement computing Operating Revenue, Cost of Goods Sold, Gross Margin, Operating Expenses, and Net Profit.
+     - `getBalanceSheet`: Statement of Financial Position verifying Assets = Liabilities + Equity (including net retained earnings).
+     - `getGeneralLedger`: Account transaction ledger with running balance progression.
+3. **Controllers & Operations**:
+   - `Tenant\AccountingController`:
+     - `coaIndex`, `coaCreate` & `coaStore`: Chart of accounts grouped view and custom account creation.
+     - `journalIndex`, `journalCreate` & `journalStore`: Journal vouchers registry and interactive double-entry creation with live debit/credit balance indicator.
+     - `journalShow` & `journalReverse`: Voucher inspection and reversal workflow.
+     - `generalLedger`, `trialBalance`, `profitAndLoss` & `balanceSheet`: Core financial reporting suite.
+4. **Testing & Verification**:
+   - `Phase14FinancialAccountingTest`: 7 comprehensive test cases verifying auto-seeding of default chart of accounts, custom account creation, balanced JV posting with running balance updates, rejection of unbalanced vouchers, automated reversing entries, Trial Balance & P&L calculations, and multi-tenant isolation.
+   - Complete application test suite: **112 tests passed, 577 assertions, 0 failures**.
+   - Code formatted with Laravel Pint.

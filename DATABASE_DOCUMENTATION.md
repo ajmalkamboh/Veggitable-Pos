@@ -565,5 +565,58 @@ Operational expenses, Mandi transport, daily meals, shop rent, and utility vouch
 
 ---
 
-## 9. Super Admin, Roles & Security Tables
+## 9. Financial Accounting & Ledgers Tables (Phase 14)
+
+### `chart_of_accounts`
+Standard 5-class double-entry Chart of Accounts for vegetable shop management.
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `account_code`: VARCHAR(50) NOT NULL (e.g. `1010`, `1020`, `2010`, `3010`, `4010`, `5010`)
+- `name`: VARCHAR(255) NOT NULL
+- `name_ur`: VARCHAR(255) NULL (Nastaliq Urdu translation)
+- `type`: VARCHAR(30) NOT NULL (`asset`, `liability`, `equity`, `revenue`, `expense`)
+- `subtype`: VARCHAR(50) NOT NULL (`current_asset`, `non_current_asset`, `current_liability`, `non_current_liability`, `equity`, `operating_revenue`, `direct_expense`, `operating_expense`)
+- `opening_balance`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `current_balance`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `description`: TEXT NULL
+- `is_system`: BOOLEAN NOT NULL DEFAULT 0
+- `is_active`: BOOLEAN NOT NULL DEFAULT 1
+- `created_at`, `updated_at`: TIMESTAMP NULL
+- `deleted_at`: TIMESTAMP NULL (Soft Deletes)
+- **Indexes**: `UNIQUE(tenant_id, account_code)`, `INDEX(tenant_id, type, is_active)`
+
+### `journal_entries`
+Double-entry Journal Vouchers (JVs) ensuring debits match credits.
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `branch_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `branches(id)` ON DELETE CASCADE
+- `entry_no`: VARCHAR(50) NOT NULL (e.g. `JV-2601-00001`)
+- `date`: DATE NOT NULL
+- `reference_type`: VARCHAR(50) NOT NULL DEFAULT 'manual' (`manual`, `purchase`, `sale`, `expense`, `wastage`, `transfer`, `adjustment`)
+- `reference_id`: BIGINT UNSIGNED NULL
+- `reference_no`: VARCHAR(100) NULL
+- `narration`: TEXT NOT NULL
+- `total_debit`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `total_credit`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `status`: VARCHAR(20) NOT NULL DEFAULT 'posted' (`posted`, `draft`, `reversed`)
+- `created_by`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `users(id)` ON DELETE SET NULL
+- `created_at`, `updated_at`: TIMESTAMP NULL
+- `deleted_at`: TIMESTAMP NULL (Soft Deletes)
+- **Indexes**: `UNIQUE(tenant_id, entry_no)`, `INDEX(tenant_id, branch_id, date)`, `INDEX(tenant_id, status)`
+
+### `journal_entry_lines`
+Individual debit and credit line rows for each journal entry.
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `journal_entry_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `journal_entries(id)` ON DELETE CASCADE
+- `account_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `chart_of_accounts(id)` ON DELETE RESTRICT
+- `description`: VARCHAR(255) NULL
+- `debit`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `credit`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `created_at`, `updated_at`: TIMESTAMP NULL
+- **Indexes**: `INDEX(tenant_id, account_id)`
+
+---
+
+## 10. Super Admin, Roles & Security Tables
 - `subscription_plans`, `subscriptions`, `subscription_invoices`, `roles`, `permissions`, `permission_role`, `role_user`, `audit_logs`.

@@ -156,18 +156,19 @@
         </ul>
       </li>
 
-      <li class="nav-item has-submenu">
-        <a class="nav-link" href="#" aria-expanded="false" data-tooltip="Accounts">
+      <li class="nav-item has-submenu {{ request()->routeIs('tenant.accounting.*') ? 'show' : '' }}">
+        <a class="nav-link {{ request()->routeIs('tenant.accounting.*') ? 'active' : '' }}" href="#" aria-expanded="false" data-tooltip="{{ __('Accounting & Finance') }}">
           <i class="ph-duotone ph-book-open"></i>
-          <span>Accounting & Finance</span>
+          <span>{{ __('Accounting & Ledgers') }}</span>
           <i class="ph-duotone ph-caret-down nav-arrow"></i>
         </a>
         <ul class="nav-submenu">
-          <li><a class="nav-link" href="#">Chart of Accounts</a></li>
-          <li><a class="nav-link" href="#">Journal Vouchers</a></li>
-          <li><a class="nav-link" href="#">General Ledger</a></li>
-          <li><a class="nav-link" href="#">Trial Balance</a></li>
-          <li><a class="nav-link" href="#">Profit & Loss</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.accounting.coa.*') ? 'active' : '' }}" href="{{ route('tenant.accounting.coa.index') }}">{{ __('Chart of Accounts') }}</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.accounting.journal.*') ? 'active' : '' }}" href="{{ route('tenant.accounting.journal.index') }}">{{ __('Journal Vouchers (JV)') }}</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.accounting.ledger') ? 'active' : '' }}" href="{{ route('tenant.accounting.ledger') }}">{{ __('General Ledger') }}</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.accounting.trial-balance') ? 'active' : '' }}" href="{{ route('tenant.accounting.trial-balance') }}">{{ __('Trial Balance') }}</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.accounting.pnl') ? 'active' : '' }}" href="{{ route('tenant.accounting.pnl') }}">{{ __('Profit & Loss (P&L)') }}</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.accounting.balance-sheet') ? 'active' : '' }}" href="{{ route('tenant.accounting.balance-sheet') }}">{{ __('Balance Sheet') }}</a></li>
         </ul>
       </li>
 

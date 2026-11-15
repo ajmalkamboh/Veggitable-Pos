@@ -22,8 +22,8 @@
 | **Phase 11** | POS & Sales Management | **COMPLETED** | Retail Cashier Terminal, Instant Weight/Barcode Entry, Multi-Payment (Cash/Bank/Party Credit), Till Sessions & Cash Drawer Reconciliation, Parked / Held Carts, Thermal Receipts, Line Item & Full Sales Returns with FIFO COGS Restocking, 91 Tests Passing |
 | **Phase 12** | Wastage, Damage & Stock Adjustments | **COMPLETED** | Produce Spoilage & Rotten Cull Tracking, Moisture/Drying Shrinkage, In-transit Damage, Pest/Infestation Losses, Produce Sorting & Quality Regrading (Input -> Yield + Cull Loss), Approval Workflows, Stock Movement Integration, 98 Tests Passing |
 | **Phase 13** | Expense Management | **COMPLETED** | Operational Expense Vouchers, Mandi Logistics & Freight, Daily Tea/Meals, Shop Utilities & Rent, Multi-Tender Payment Methods, Financial Account Petty Cash Balances, Receipt Attachments, Approval Workflows, 105 Tests Passing |
-| **Phase 14** | Financial Accounting & Ledgers | In Progress | Active Development |
-| **Phase 15** | Dashboard & Business Reports | Pending | Scheduled |
+| **Phase 14** | Financial Accounting & Ledgers | **COMPLETED** | Standard 5-Class Chart of Accounts (COA), Double-Entry Journal Vouchers (Debits = Credits), Reversals, General Ledger Statements, Trial Balance Verification, Profit & Loss (P&L), Balance Sheet, 112 Tests Passing |
+| **Phase 15** | Dashboard & Business Reports | In Progress | Active Development |
 | **Phase 16** | Printing, Receipts & Hardware Integration | Pending | Scheduled |
 | **Phase 17** | Notifications & SaaS Automation | Pending | Scheduled |
 | **Phase 18** | Security, Performance & Backup | Pending | Scheduled |

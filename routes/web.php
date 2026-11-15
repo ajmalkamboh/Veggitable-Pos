@@ -9,6 +9,7 @@ use App\Http\Controllers\SuperAdmin\ReportController as SuperAdminReportControll
 use App\Http\Controllers\SuperAdmin\SubscriptionPaymentController as SuperAdminPaymentController;
 use App\Http\Controllers\SuperAdmin\SubscriptionPlanController as SuperAdminPlanController;
 use App\Http\Controllers\SuperAdmin\TenantController as SuperAdminTenantController;
+use App\Http\Controllers\Tenant\AccountingController as TenantAccountingController;
 use App\Http\Controllers\Tenant\AuditLogController as TenantAuditController;
 use App\Http\Controllers\Tenant\CategoryController as TenantCategoryController;
 use App\Http\Controllers\Tenant\CustomerController as TenantCustomerController;
@@ -275,6 +276,31 @@ Route::middleware(['auth', 'tenant.active', 'tenant.prevent_cross'])->group(func
             Route::delete('/{expense}', [TenantExpenseController::class, 'destroy'])->name('destroy');
             Route::post('/{expense}/approve', [TenantExpenseController::class, 'approve'])->name('approve');
             Route::post('/{expense}/reject', [TenantExpenseController::class, 'reject'])->name('reject');
+        });
+
+        // Financial Accounting & Ledgers
+        Route::prefix('tenant/accounting')->name('tenant.accounting.')->group(function () {
+            // Chart of Accounts
+            Route::prefix('coa')->name('coa.')->group(function () {
+                Route::get('/', [TenantAccountingController::class, 'coaIndex'])->name('index');
+                Route::get('/create', [TenantAccountingController::class, 'coaCreate'])->name('create');
+                Route::post('/', [TenantAccountingController::class, 'coaStore'])->name('store');
+            });
+
+            // Journal Vouchers
+            Route::prefix('journal')->name('journal.')->group(function () {
+                Route::get('/', [TenantAccountingController::class, 'journalIndex'])->name('index');
+                Route::get('/create', [TenantAccountingController::class, 'journalCreate'])->name('create');
+                Route::post('/', [TenantAccountingController::class, 'journalStore'])->name('store');
+                Route::get('/{journalEntry}', [TenantAccountingController::class, 'journalShow'])->name('show');
+                Route::post('/{journalEntry}/reverse', [TenantAccountingController::class, 'journalReverse'])->name('reverse');
+            });
+
+            // Reports & Financial Statements
+            Route::get('/general-ledger', [TenantAccountingController::class, 'generalLedger'])->name('ledger');
+            Route::get('/trial-balance', [TenantAccountingController::class, 'trialBalance'])->name('trial-balance');
+            Route::get('/profit-and-loss', [TenantAccountingController::class, 'profitAndLoss'])->name('pnl');
+            Route::get('/balance-sheet', [TenantAccountingController::class, 'balanceSheet'])->name('balance-sheet');
         });
     });
 });

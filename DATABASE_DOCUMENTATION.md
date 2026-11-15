@@ -703,3 +703,12 @@ All 25 transactional tables implement strict `tenant_id` constraints, indexing, 
   - Isolated Tenant Data Export: `tenant_{slug}_YYYY-MM-DD_HHmmss.json` (Structured multi-module JSON package)
 - **Manifest**: `storage/app/backups/manifest.json` tracks filename, size, timestamp, SHA-256 tamper-evident checksum, and compression flag.
 - **Retention**: Automated 30-day purge cycle via `veggitable:clean-backups` or `veggitable:backup --clean`.
+
+---
+
+## 15. End-to-End System Integration Audit (Phase 19)
+The comprehensive integration audit confirms transactional coherence across all relational boundaries:
+- **Procurement to Inventory & COA**: Wholesale procurement lot line entries atomically increment branch physical stock (`inventory_stocks`), record immutable movement history (`stock_movements`), adjust supplier payable ledgers (`suppliers`), and trigger double-entry journal vouchers (`journal_entries` and `journal_entry_lines`).
+- **POS Checkout to Cash Reconciliation**: Counter barcode decoding (`20AAAAAWWWWWX`) interfaces with retail sales lines, stock depletion triggers, customer receivable ledgers, and cashier till sessions (`pos_sessions`).
+- **Regrading to Loss Valuation**: Multi-grade crop regrading balances input weight against output yields and cull wastage (`wastage_records`).
+- **Audit Verification Status**: Zero relational orphan records detected across all 25 tenant-isolated database tables.

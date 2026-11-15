@@ -109,7 +109,7 @@ class AccountingService
                 'reference_type' => $data['reference_type'] ?? 'manual',
                 'reference_id' => $data['reference_id'] ?? null,
                 'reference_no' => $data['reference_no'] ?? null,
-                'narration' => $data['narration'],
+                'narration' => $data['narration'] ?? $data['description'] ?? 'Journal Entry',
                 'total_debit' => $totalDebit,
                 'total_credit' => $totalCredit,
                 'status' => $status,

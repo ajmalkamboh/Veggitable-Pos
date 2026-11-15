@@ -144,6 +144,18 @@
         </ul>
       </li>
 
+      <li class="nav-item has-submenu {{ request()->routeIs('tenant.expenses.*') ? 'show' : '' }}">
+        <a class="nav-link {{ request()->routeIs('tenant.expenses.*') ? 'active' : '' }}" href="#" aria-expanded="false" data-tooltip="{{ __('Expenses') }}">
+          <i class="ph-duotone ph-wallet"></i>
+          <span>{{ __('Expenses & Petty Cash') }}</span>
+          <i class="ph-duotone ph-caret-down nav-arrow"></i>
+        </a>
+        <ul class="nav-submenu">
+          <li><a class="nav-link {{ request()->routeIs('tenant.expenses.index') ? 'active' : '' }}" href="{{ route('tenant.expenses.index') }}">{{ __('All Expenses') }}</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.expenses.create') ? 'active' : '' }}" href="{{ route('tenant.expenses.create') }}">{{ __('Record Expense') }}</a></li>
+        </ul>
+      </li>
+
       <li class="nav-item has-submenu">
         <a class="nav-link" href="#" aria-expanded="false" data-tooltip="Accounts">
           <i class="ph-duotone ph-book-open"></i>

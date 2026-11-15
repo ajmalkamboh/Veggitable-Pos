@@ -12,6 +12,7 @@ use App\Http\Controllers\SuperAdmin\TenantController as SuperAdminTenantControll
 use App\Http\Controllers\Tenant\AuditLogController as TenantAuditController;
 use App\Http\Controllers\Tenant\CategoryController as TenantCategoryController;
 use App\Http\Controllers\Tenant\CustomerController as TenantCustomerController;
+use App\Http\Controllers\Tenant\ExpenseController as TenantExpenseController;
 use App\Http\Controllers\Tenant\InventoryController as TenantInventoryController;
 use App\Http\Controllers\Tenant\OnboardingController as TenantOnboardingController;
 use App\Http\Controllers\Tenant\PosController as TenantPosController;
@@ -263,6 +264,17 @@ Route::middleware(['auth', 'tenant.active', 'tenant.prevent_cross'])->group(func
             Route::get('/', [TenantSalesInvoiceController::class, 'index'])->name('index');
             Route::get('/{salesInvoice}', [TenantSalesInvoiceController::class, 'show'])->name('show');
             Route::post('/{salesInvoice}/returns', [TenantSalesInvoiceController::class, 'returnItem'])->name('returns.store');
+        });
+
+        // Expenses & Petty Cash Management
+        Route::prefix('tenant/expenses')->name('tenant.expenses.')->group(function () {
+            Route::get('/', [TenantExpenseController::class, 'index'])->name('index');
+            Route::get('/create', [TenantExpenseController::class, 'create'])->name('create');
+            Route::post('/', [TenantExpenseController::class, 'store'])->name('store');
+            Route::get('/{expense}', [TenantExpenseController::class, 'show'])->name('show');
+            Route::delete('/{expense}', [TenantExpenseController::class, 'destroy'])->name('destroy');
+            Route::post('/{expense}/approve', [TenantExpenseController::class, 'approve'])->name('approve');
+            Route::post('/{expense}/reject', [TenantExpenseController::class, 'reject'])->name('reject');
         });
     });
 });

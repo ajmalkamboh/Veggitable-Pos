@@ -535,5 +535,35 @@ Produce sorting, quality grading, and downgrade sessions (e.g. morning sorting o
 
 ---
 
-## 8. Super Admin, Roles & Security Tables
+## 8. Expense Management Tables (Phase 13)
+
+### `expenses`
+Operational expenses, Mandi transport, daily meals, shop rent, and utility vouchers.
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `branch_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `branches(id)` ON DELETE CASCADE
+- `category_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `categories(id)` ON DELETE CASCADE
+- `financial_account_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `financial_accounts(id)` ON DELETE SET NULL
+- `expense_no`: VARCHAR(50) NOT NULL (e.g. `EXP-2601-00001`)
+- `date`: DATE NOT NULL
+- `amount`: DECIMAL(15, 2) NOT NULL (Voucher amount in tenant currency)
+- `payment_method`: VARCHAR(30) NOT NULL DEFAULT 'cash' (`cash`, `bank`, `online`, `cheque`)
+- `payee_name`: VARCHAR(255) NULL (e.g. Carriage driver, porter, utility board)
+- `reference_no`: VARCHAR(100) NULL (Receipt, bill, or cheque reference)
+- `attachment_path`: VARCHAR(255) NULL (Uploaded photo/scan of bill)
+- `description`: TEXT NULL
+- `status`: VARCHAR(20) NOT NULL DEFAULT 'approved' (`approved`, `pending_approval`, `rejected`)
+- `is_recurring`: BOOLEAN NOT NULL DEFAULT 0
+- `recurring_frequency`: VARCHAR(20) NULL (`daily`, `weekly`, `monthly`)
+- `created_by`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `users(id)` ON DELETE SET NULL
+- `approved_by`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `users(id)` ON DELETE SET NULL
+- `approved_at`: TIMESTAMP NULL
+- `rejection_reason`: VARCHAR(255) NULL
+- `created_at`, `updated_at`: TIMESTAMP NULL
+- `deleted_at`: TIMESTAMP NULL (Soft Deletes)
+- **Indexes**: `UNIQUE(tenant_id, expense_no)`, `INDEX(tenant_id, branch_id, date)`, `INDEX(tenant_id, category_id)`, `INDEX(tenant_id, status)`
+
+---
+
+## 9. Super Admin, Roles & Security Tables
 - `subscription_plans`, `subscriptions`, `subscription_invoices`, `roles`, `permissions`, `permission_role`, `role_user`, `audit_logs`.

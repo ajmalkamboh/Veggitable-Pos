@@ -1,8 +1,8 @@
-# PHASE COMPLETION REPORT: PHASE 12 – WASTAGE, DAMAGE & STOCK ADJUSTMENTS
+# PHASE COMPLETION REPORT: PHASE 13 – EXPENSE MANAGEMENT
 
 ## Executive Summary
-Phase 12 has been **genuinely completed** in strict compliance with the Master Development Instructions.
-A specialized vegetable & fruit wastage, damage, drying shrinkage, and produce quality regrading architecture has been developed. The module addresses authentic fresh produce shop operations: daily morning sorting and culling of rotten items, moisture/drying evaporation weight losses, handling/in-transit damage, pest infestation, trimming/cleaning losses, cost-basis financial loss calculation, multi-item wastage vouchers with disposal method categorisation (`discarded`, `donated`, `composted`, `salvaged`), two-step manager review & approval workflows (`pending_approval`, `approved`, `rejected`), automatic FIFO batch depletion or specific lot attribution, produce quality regrading (e.g. Grade A to Grade B conversion with cull shrinkage), and complete multi-tenant isolation.
+Phase 13 has been **genuinely completed** in strict compliance with the Master Development Instructions.
+A complete, multi-branch operational expense and petty cash management system has been developed for the vegetable shop SaaS platform. The module covers daily shop overheads, Mandi transport & carriage logistics, staff meals and counter tea, packaging supplies, utility bills, shop rent, multi-tender payment modes (`cash`, `bank`, `online`, `cheque`), automated petty cash account balance deduction and cancellation restitution, bill receipt attachment upload and preview, recurring expense scheduling (`daily`, `weekly`, `monthly`), two-step manager review & approval workflows (`pending_approval`, `approved`, `rejected`), and strict multi-tenant isolation.
 
 ---
 
@@ -11,69 +11,68 @@ A specialized vegetable & fruit wastage, damage, drying shrinkage, and produce q
 - **Phase 09**: Mandi procurement, gross/tare scale weight calculations, Mandi commissions and fees, immediate cash drawer settlements, debit notes, invoice cancellation reversals.
 - **Phase 10**: Real-time multi-branch inventory, FIFO produce lot batches, expiry/shelf-life tracking, stock movements ledger, inter-branch transfers, physical stock count audits.
 - **Phase 11**: Retail cashier terminal, instant weight/barcode scanning, multi-tender split payments (Cash, Bank, Card, Customer Credit), cashier till sessions with drawer reconciliation, held carts, thermal receipts, sales returns with restocking.
+- **Phase 12**: Spoilage and cull tracking, moisture/drying shrinkage, handling damage, pest infestation, produce sorting & quality regrading (Grade A to Grade B with cull loss).
 
 ---
 
 ## 2. What Was Newly Implemented
-1. **Produce Spoilage & Wastage Vouchers**:
-   - `wastage_records` tracking sequential voucher numbers (`WST-YYMM-XXXXX`), date, branch, primary spoilage reason (`spoilage`, `drying_shrinkage`, `handling_damage`, `pest_damage`, `trimming_cleaning`, `expired`, `other`), status (`pending_approval`, `approved`, `rejected`), total items, total weight (kg), total financial loss (PKR), approver details, rejection reasons, and notes.
-   - `wastage_record_items` recording individual produce lines, batch lots, wasted quantity, unit cost basis, financial loss value, disposal method, and line notes.
-2. **Produce Sorting & Quality Regrading**:
-   - `produce_regradings` table and UI supporting morning sorting operations where bulk arrivals (e.g. Grade A tomatoes) are culled and regraded into secondary produce (e.g. Grade B tomatoes) with sorting shrinkage and financial cull loss tracked atomically.
+1. **Operational Expense Vouchers**:
+   - `expenses` table tracking sequential numbering (`EXP-YYMM-XXXXX`), date, branch, expense category, financial account, amount, payment method (`cash`, `bank`, `online`, `cheque`), payee name, bill reference, attachment path, description, status (`approved`, `pending_approval`, `rejected`), recurring flags, and approval audit timestamps.
+2. **Financial Account & Petty Cash Drawer Synchronization**:
+   - `App\Services\ExpenseService`:
+     - Deducts voucher amount from the selected financial account (`financial_accounts.current_balance`) upon approval.
+     - Automatically restores and increments balance if an approved voucher is cancelled or deleted.
 3. **Approval Workflow Architecture**:
-   - Staff can submit vouchers as draft (`pending_approval`) where inventory remains untouched until authorized managers review and approve the voucher (`POST /tenant/inventory/wastage/{id}/approve`) or reject it with an actionable reason (`POST /tenant/inventory/wastage/{id}/reject`).
-   - Managers/owners can also approve immediately upon submission.
-4. **FIFO & Specific Batch Depletion**:
-   - Approved wastage immediately decrements branch aggregate inventory (`inventory_stocks`), depletes corresponding lot batches (`inventory_batches`), and writes immutable double-entry stock movement records (`stock_movements` with type `wastage_out`).
-5. **Bilingual Localization & Navigation**:
-   - Reason badges and disposal methods formatted with English and Urdu Nastaliq translations (`خراب / گلا سڑا`, `سوکھنا / وزن کی کمی`, `ٹوٹ پھوٹ / نقصان`, `صفائی / چھانٹی`).
-   - Integrated Wastage & Spoilage Loss and Produce Sorting & Regrading into tenant sidebar navigation.
+   - Two-step authorization: Staff can submit vouchers as draft (`pending_approval`) where account balances remain untouched until authorized managers review and approve the voucher (`POST /tenant/expenses/{id}/approve`) or reject it with an actionable reason (`POST /tenant/expenses/{id}/reject`).
+4. **Receipt Document Storage**:
+   - Secure upload and download handling of cash memos, petrol slips, and utility bills (`storage/app/public/tenants/{tenant_id}/expenses/`).
+5. **Recurring Expense Schedules**:
+   - Support for marking recurring overheads (monthly shop rent, electricity, weekly wages, daily tea) for automated tracking.
+6. **Bilingual Support & Navigation**:
+   - Expense categories, payment methods, and status badges localized with English and Urdu Nastaliq typography (`دکان کا کرایہ`, `منڈی کرایہ و باربرداری`, `روزانہ چائے کھانا`).
+   - Integrated Expenses & Petty Cash into tenant sidebar navigation.
 
 ---
 
 ## 3. Database Changes
-1. **New Migration**: `database/migrations/2026_11_15_052901_create_wastage_and_damage_tables.php`
-   - `wastage_records`
-   - `wastage_record_items`
-   - `produce_regradings`
+1. **New Migration**: `database/migrations/2026_11_15_112424_create_expenses_table.php`
+   - `expenses`
 2. **Models Created**:
-   - `WastageRecord`, `WastageRecordItem`, `ProduceRegrading`.
+   - `Expense`.
 3. **Services Created**:
-   - `App\Services\WastageService`.
+   - `App\Services\ExpenseService`.
 
 ---
 
 ## 4. Routes and Pages Created
-- `GET /tenant/inventory/wastage`: `tenant.inventory.wastage.index`
-- `GET /tenant/inventory/wastage/create`: `tenant.inventory.wastage.create`
-- `POST /tenant/inventory/wastage`: `tenant.inventory.wastage.store`
-- `GET /tenant/inventory/wastage/{id}`: `tenant.inventory.wastage.show`
-- `POST /tenant/inventory/wastage/{id}/approve`: `tenant.inventory.wastage.approve`
-- `POST /tenant/inventory/wastage/{id}/reject`: `tenant.inventory.wastage.reject`
-- `GET /tenant/inventory/regradings`: `tenant.inventory.regradings.index`
-- `GET /tenant/inventory/regradings/create`: `tenant.inventory.regradings.create`
-- `POST /tenant/inventory/regradings`: `tenant.inventory.regradings.store`
+- `GET /tenant/expenses`: `tenant.expenses.index`
+- `GET /tenant/expenses/create`: `tenant.expenses.create`
+- `POST /tenant/expenses`: `tenant.expenses.store`
+- `GET /tenant/expenses/{id}`: `tenant.expenses.show`
+- `DELETE /tenant/expenses/{id}`: `tenant.expenses.destroy`
+- `POST /tenant/expenses/{id}/approve`: `tenant.expenses.approve`
+- `POST /tenant/expenses/{id}/reject`: `tenant.expenses.reject`
 
 ---
 
 ## 5. Tests Executed and Results
-- **Test File**: `tests/Feature/Phase12WastageAndDamageManagementTest.php`
-- **Results**: 7 / 7 test methods passed (32 assertions).
-  1. `test_user_can_record_approved_wastage_and_stock_is_deducted`: Passed.
-  2. `test_user_can_submit_pending_approval_wastage_and_stock_is_not_deducted_until_approved`: Passed.
-  3. `test_manager_can_reject_pending_wastage_voucher`: Passed.
-  4. `test_produce_sorting_and_regrading_deducts_source_adds_target_and_logs_loss`: Passed.
-  5. `test_tenant_isolation_in_wastage_and_damage`: Passed.
-  6. `test_wastage_with_specific_batch_depletes_that_batch`: Passed.
-  7. `test_bilingual_reason_labels_and_status_badges`: Passed.
-- **Full Application Test Suite**: **98 tests passed, 521 assertions, 0 failures**.
+- **Test File**: `tests/Feature/Phase13ExpenseManagementTest.php`
+- **Results**: 7 / 7 test methods passed (29 assertions).
+  1. `test_user_can_record_approved_expense_and_account_balance_is_deducted`: Passed.
+  2. `test_pending_expense_does_not_deduct_account_balance_until_approved`: Passed.
+  3. `test_manager_can_reject_pending_expense_voucher`: Passed.
+  4. `test_cancelling_expense_refunds_account_balance`: Passed.
+  5. `test_expense_with_receipt_attachment`: Passed.
+  6. `test_tenant_isolation_in_expenses`: Passed.
+  7. `test_bilingual_labels_and_status_badges`: Passed.
+- **Full Application Test Suite**: **105 tests passed, 550 assertions, 0 failures**.
 - **Code Formatting**: Verified with Laravel Pint (`vendor/bin/pint --dirty --format agent`).
 
 ---
 
 ## 6. Pending Tasks
-- None for Phase 12.
-- Proceed to Phase 13: Expense Management.
+- None for Phase 13.
+- Proceed to Phase 14: Financial Accounting & Ledgers.
 
 ---
 
@@ -83,4 +82,4 @@ A specialized vegetable & fruit wastage, damage, drying shrinkage, and produce q
 ---
 
 ## 8. Is the Phase Genuinely Complete?
-**YES**. Phase 12 is 100% complete, fully functional, beautifully styled, properly isolated for multi-tenancy, and thoroughly tested.
+**YES**. Phase 13 is 100% complete, fully functional, beautifully styled, properly isolated for multi-tenancy, and thoroughly tested.

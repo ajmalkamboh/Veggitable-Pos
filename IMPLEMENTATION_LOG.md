@@ -268,3 +268,24 @@
    - `Phase12WastageAndDamageManagementTest`: 7 comprehensive test cases verifying approved wastage stock and batch deduction, pending approval workflow, manager rejection, produce sorting and regrading calculations, specific batch allocation, bilingual labels, and tenant isolation.
    - Complete application test suite: **98 tests passed, 521 assertions, 0 failures**.
    - Code formatted with Laravel Pint.
+
+## Phase 13: Expense Management (Completed 2026-11-15)
+1. **Database Schema & Migrations**:
+   - `expenses`: Operational expense vouchers tracking sequential numbering (`EXP-YYMM-XXXXX`), date, branch, category ID, financial account ID, amount (PKR), payment method (`cash`, `bank`, `online`, `cheque`), payee/recipient name, reference/bill number, receipt attachment file path, description, status (`approved`, `pending_approval`, `rejected`), recurring flags, and approval audit timestamps.
+2. **Business Models & Services**:
+   - Model: `Expense` with multi-tenant scoping, bilingual payment method labels, and status badges.
+   - `App\Services\ExpenseService`:
+     - `createExpense`: Creates expense vouchers, handles receipt uploads to storage, and if approved immediately deducts funds from the selected financial account (`financial_accounts.current_balance`).
+     - `approve`: Manager approval workflow deducting funds upon authorization.
+     - `reject`: Rejection action recording reason without fund deduction.
+     - `cancel`: Reverses expense, refunds balance back to cash/bank account, and soft-deletes the voucher.
+3. **Controllers & Operations**:
+   - `Tenant\ExpenseController`:
+     - `index`: Summary cards (Month Total Expenses PKR, Today's Expenses PKR, Pending Approvals, Total Available Cash/Bank Reserves), multi-criteria filtering by category, branch, status, date, and search.
+     - `create` & `store`: Comprehensive voucher creation form with live account balance hints, payment method selectors, receipt file upload, and recurring schedule toggles.
+     - `show`: Voucher inspection, receipt attachment preview/download, account impact breakdown, and manager approval/rejection modal.
+     - `approve`, `reject` & `destroy`: Decision and cancellation actions.
+4. **Testing & Verification**:
+   - `Phase13ExpenseManagementTest`: 7 comprehensive test cases verifying approved expense creation with account balance decrement, pending approval gating, manager rejection, voucher cancellation with balance refund, receipt attachment upload handling, tenant isolation, and bilingual labels.
+   - Complete application test suite: **105 tests passed, 550 assertions, 0 failures**.
+   - Code formatted with Laravel Pint.

@@ -159,6 +159,30 @@ class Tenant extends Model
     }
 
     /**
+     * Commission agents, farmers and suppliers.
+     */
+    public function suppliers(): HasMany
+    {
+        return $this->hasMany(Supplier::class);
+    }
+
+    /**
+     * Retail and commercial customer accounts.
+     */
+    public function customers(): HasMany
+    {
+        return $this->hasMany(Customer::class);
+    }
+
+    /**
+     * Ledger entries for suppliers and customers.
+     */
+    public function partyLedgerEntries(): HasMany
+    {
+        return $this->hasMany(PartyLedgerEntry::class);
+    }
+
+    /**
      * Unit conversion multipliers.
      */
     public function unitConversions(): HasMany

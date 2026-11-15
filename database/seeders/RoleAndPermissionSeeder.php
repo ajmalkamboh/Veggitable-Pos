@@ -28,9 +28,15 @@ class RoleAndPermissionSeeder extends Seeder
             ['name' => 'Manage Categories', 'slug' => 'categories.manage', 'module' => 'products', 'description' => 'Create and organize product and expense categories.'],
             ['name' => 'Manage Units', 'slug' => 'units.manage', 'module' => 'products', 'description' => 'Configure measurement units and conversion multipliers.'],
 
-            // Purchases
+            // Purchases & Suppliers
             ['name' => 'View Purchases', 'slug' => 'purchases.view', 'module' => 'purchases', 'description' => 'View supplier purchases and bills.'],
             ['name' => 'Create Purchases', 'slug' => 'purchases.create', 'module' => 'purchases', 'description' => 'Create new purchase invoices and receive lots.'],
+            ['name' => 'View Suppliers', 'slug' => 'suppliers.view', 'module' => 'suppliers', 'description' => 'View Mandi commission agents and farmers directory.'],
+            ['name' => 'Manage Suppliers', 'slug' => 'suppliers.manage', 'module' => 'suppliers', 'description' => 'Create, edit, and manage supplier profiles and ledger balances.'],
+
+            // Customers
+            ['name' => 'View Customers', 'slug' => 'customers.view', 'module' => 'customers', 'description' => 'View retail and commercial customer accounts.'],
+            ['name' => 'Manage Customers', 'slug' => 'customers.manage', 'module' => 'customers', 'description' => 'Create and edit customers, credit limits and balances.'],
 
             // Expenses
             ['name' => 'Manage Expenses', 'slug' => 'expenses.manage', 'module' => 'expenses', 'description' => 'Log petty cash and daily shop overheads.'],
@@ -73,6 +79,8 @@ class RoleAndPermissionSeeder extends Seeder
                     'inventory.view', 'inventory.manage',
                     'products.view', 'products.manage', 'categories.manage', 'units.manage',
                     'purchases.view', 'purchases.create',
+                    'suppliers.view', 'suppliers.manage',
+                    'customers.view', 'customers.manage',
                     'expenses.manage', 'reports.sales',
                     'users.manage', 'settings.manage',
                 ],
@@ -85,6 +93,8 @@ class RoleAndPermissionSeeder extends Seeder
                 'permissions' => [
                     'accounting.view', 'accounting.manage',
                     'expenses.manage', 'purchases.view',
+                    'suppliers.view', 'suppliers.manage',
+                    'customers.view', 'customers.manage',
                     'reports.sales', 'reports.financial',
                 ],
             ],
@@ -95,6 +105,7 @@ class RoleAndPermissionSeeder extends Seeder
                 'is_system' => true,
                 'permissions' => [
                     'purchases.view', 'purchases.create',
+                    'suppliers.view', 'suppliers.manage',
                     'inventory.view',
                 ],
             ],
@@ -105,6 +116,7 @@ class RoleAndPermissionSeeder extends Seeder
                 'is_system' => true,
                 'permissions' => [
                     'pos.counter', 'pos.hold',
+                    'customers.view', 'customers.manage',
                 ],
             ],
             [
@@ -125,7 +137,7 @@ class RoleAndPermissionSeeder extends Seeder
                 'is_system' => true,
                 'permissions' => [
                     'inventory.view', 'purchases.view',
-                    'products.view',
+                    'products.view', 'suppliers.view', 'customers.view',
                     'reports.sales',
                 ],
             ],

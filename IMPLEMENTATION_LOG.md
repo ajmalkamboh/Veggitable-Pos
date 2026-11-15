@@ -103,3 +103,30 @@
    - `Phase07ProductCategoryUnitManagementTest`: 9 test cases verifying category hierarchy, unit conversions, barcode generation, profit margin computation, bilingual search, tenant isolation, and role permissions.
    - Complete application test suite: **62 tests passed, 278 assertions, 0 failures**.
    - Code formatted with Laravel Pint.
+
+---
+
+## [Phase 08] - Supplier & Customer Management
+**Date**: 2026-11-15
+**Status**: COMPLETED
+
+1. **Database Schema & Migrations**:
+   - `2026_11_15_043025_create_suppliers_table.php`: Created `suppliers` table with vendor classification (`commission_agent`, `farmer`, `wholesaler`, `other`), Mandi stall number, commission rate %, bank account details, credit terms, opening balance, current balance, soft deletes.
+   - `2026_11_15_043032_create_customers_table.php`: Created `customers` table with account classification (`retail`, `hotel_restaurant`, `wholesale_buyer`, `canteen_caterer`), credit limit amount, allowed credit days, opening balance, current receivable balance, soft deletes.
+   - `2026_11_15_043039_create_party_ledger_entries_table.php`: Created `party_ledger_entries` table (`tenant_id`, `party_type`, `party_id`, `date`, `reference_type`, `reference_id`, `reference_no`, `description`, `debit`, `credit`, `balance`, `created_by`).
+2. **Models & Relationships**:
+   - `Supplier`: `tenant()`, `ledgerEntries()` (`party_type = 'supplier'`), `generateCode(Tenant $tenant)` sequential code generator.
+   - `Customer`: `tenant()`, `ledgerEntries()` (`party_type = 'customer'`), `generateCode(Tenant $tenant)` sequential code generator.
+   - `PartyLedgerEntry`: `tenant()`, `creator()` (User audit).
+   - `Tenant`: Updated with `suppliers()`, `customers()`, `partyLedgerEntries()`.
+3. **Controllers & Operations**:
+   - `SupplierController`: Full vendor CRUD, Mandi stall tracking, commission rates, opening balance ledger generation, manual payment processing from financial accounts with live balance updates.
+   - `CustomerController`: Full customer account CRUD, credit limits, payment period days, opening balance ledger generation, payment receipt collection deposited into cash/bank accounts with live balance updates.
+4. **Views & UI Integration**:
+   - `tenant/suppliers/index.blade.php`, `create.blade.php`, `edit.blade.php`, `show.blade.php` (with statement table & payment modal).
+   - `tenant/customers/index.blade.php`, `create.blade.php`, `edit.blade.php`, `show.blade.php` (with credit limit progress gauge & receipt modal).
+   - Sidebar updated with "Suppliers & Customers" menu.
+5. **Testing & Verification**:
+   - `Phase08SupplierCustomerManagementTest`: 8 test cases covering opening balance ledger creation, supplier payment processing, customer receipt collection, credit limit enforcement, bilingual search, tenant isolation, and role permissions.
+   - Complete application test suite: **70 tests passed, 326 assertions, 0 failures**.
+   - Code formatted with Laravel Pint.

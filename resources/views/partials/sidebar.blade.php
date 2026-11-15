@@ -90,6 +90,18 @@
         </ul>
       </li>
 
+      <li class="nav-item has-submenu {{ request()->routeIs('tenant.suppliers.*') || request()->routeIs('tenant.customers.*') ? 'show' : '' }}">
+        <a class="nav-link {{ request()->routeIs('tenant.suppliers.*') || request()->routeIs('tenant.customers.*') ? 'active' : '' }}" href="#" aria-expanded="false" data-tooltip="{{ __('Suppliers & Customers') }}">
+          <i class="ph-duotone ph-users-three"></i>
+          <span>{{ __('Suppliers & Customers') }}</span>
+          <i class="ph-duotone ph-caret-down nav-arrow"></i>
+        </a>
+        <ul class="nav-submenu">
+          <li><a class="nav-link {{ request()->routeIs('tenant.suppliers.*') ? 'active' : '' }}" href="{{ route('tenant.suppliers.index') }}">{{ __('Suppliers & Aarthi') }}</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.customers.*') ? 'active' : '' }}" href="{{ route('tenant.customers.index') }}">{{ __('Customers & Accounts') }}</a></li>
+        </ul>
+      </li>
+
       <li class="nav-item has-submenu">
         <a class="nav-link" href="#" aria-expanded="false" data-tooltip="Purchases">
           <i class="ph-duotone ph-truck"></i>
@@ -99,7 +111,7 @@
         <ul class="nav-submenu">
           <li><a class="nav-link" href="#">Purchase Invoices</a></li>
           <li><a class="nav-link" href="#">New Purchase</a></li>
-          <li><a class="nav-link" href="#">Suppliers</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.suppliers.*') ? 'active' : '' }}" href="{{ route('tenant.suppliers.index') }}">{{ __('Suppliers (Aarthi)') }}</a></li>
         </ul>
       </li>
 

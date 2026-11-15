@@ -37,4 +37,10 @@ return [
     'perishable' => 'جلد خراب ہونے والا مال',
     'shelf_life' => 'مال برقرار رہنے کی مدت',
     'reorder_level' => 'کم اسٹاک کی اطلاع حد',
+    'commission_agent' => 'منڈی آڑھتی و کمیشن ایجنٹ',
+    'farmer' => 'زمیندار / کاشتکار',
+    'payable_balance' => 'واجب الادا بقایا رقم',
+    'receivable_balance' => 'قابل وصول رقم',
+    'credit_limit' => 'ادھار کی آخری حد',
+    'credit_days' => 'ادھار کی مدت (دن)',
 ];

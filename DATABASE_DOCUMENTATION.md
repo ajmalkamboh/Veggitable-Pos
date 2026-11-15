@@ -166,6 +166,75 @@ Master catalog of vegetables, fruits, Mandi auction lots, and pre-packaged goods
 - `deleted_at`: TIMESTAMP NULL (Soft Deletes)
 - **Indexes**: `UNIQUE(tenant_id, code)`, `INDEX(tenant_id, barcode)`, `INDEX(tenant_id, type, is_active)`
 
+### `suppliers`
+Subzi Mandi commission agents (Aarthi), direct farm growers, and wholesale suppliers.
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `name`: VARCHAR(255) NOT NULL
+- `name_ur`: VARCHAR(255) NULL
+- `code`: VARCHAR(50) NOT NULL
+- `type`: VARCHAR(30) NOT NULL DEFAULT 'commission_agent' (INDEXED) (`commission_agent`, `farmer`, `wholesaler`, `other`)
+- `contact_person`: VARCHAR(100) NULL
+- `phone`: VARCHAR(50) NULL
+- `mobile`: VARCHAR(50) NULL
+- `mandi_stall_no`: VARCHAR(100) NULL
+- `address`: TEXT NULL
+- `city`: VARCHAR(100) NULL
+- `commission_rate`: DECIMAL(5, 2) NOT NULL DEFAULT 0.00
+- `opening_balance`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `current_balance`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `bank_name`: VARCHAR(100) NULL
+- `bank_account_title`: VARCHAR(100) NULL
+- `bank_account_number`: VARCHAR(50) NULL
+- `payment_terms_days`: INT NOT NULL DEFAULT 7
+- `is_active`: BOOLEAN NOT NULL DEFAULT 1 (INDEXED)
+- `notes`: TEXT NULL
+- `created_at`, `updated_at`: TIMESTAMP NULL
+- `deleted_at`: TIMESTAMP NULL (Soft Deletes)
+- **Indexes**: `UNIQUE(tenant_id, code)`, `INDEX(tenant_id, type, is_active)`, `INDEX(tenant_id, phone)`
+
+### `customers`
+Retail walk-in accounts, regular hotels, restaurants, catering services, and wholesale buyers.
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `name`: VARCHAR(255) NOT NULL
+- `name_ur`: VARCHAR(255) NULL
+- `code`: VARCHAR(50) NOT NULL
+- `type`: VARCHAR(30) NOT NULL DEFAULT 'retail' (INDEXED) (`retail`, `hotel_restaurant`, `wholesale_buyer`, `canteen_caterer`)
+- `contact_person`: VARCHAR(100) NULL
+- `phone`: VARCHAR(50) NULL
+- `mobile`: VARCHAR(50) NULL
+- `address`: TEXT NULL
+- `city`: VARCHAR(100) NULL
+- `tax_id`: VARCHAR(50) NULL (NTN / CNIC)
+- `credit_limit`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `credit_days`: INT NOT NULL DEFAULT 0
+- `opening_balance`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `current_balance`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `is_active`: BOOLEAN NOT NULL DEFAULT 1 (INDEXED)
+- `notes`: TEXT NULL
+- `created_at`, `updated_at`: TIMESTAMP NULL
+- `deleted_at`: TIMESTAMP NULL (Soft Deletes)
+- **Indexes**: `UNIQUE(tenant_id, code)`, `INDEX(tenant_id, type, is_active)`, `INDEX(tenant_id, phone)`
+
+### `party_ledger_entries`
+Audit trail and financial statement lines for suppliers and customer accounts.
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `party_type`: VARCHAR(20) NOT NULL (INDEXED) (`supplier`, `customer`)
+- `party_id`: BIGINT UNSIGNED NOT NULL (INDEXED)
+- `date`: DATE NOT NULL (INDEXED)
+- `reference_type`: VARCHAR(50) NULL (`opening_balance`, `purchase`, `sale`, `payment`, `receipt`, `adjustment`)
+- `reference_id`: BIGINT UNSIGNED NULL
+- `reference_no`: VARCHAR(100) NULL
+- `description`: VARCHAR(255) NOT NULL
+- `debit`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `credit`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `balance`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `created_by`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `users(id)` ON DELETE SET NULL
+- `created_at`, `updated_at`: TIMESTAMP NULL
+- **Indexes**: `INDEX(tenant_id, party_type, party_id, date)`
+
 ---
 
 ## 4. Super Admin, Roles & Security Tables

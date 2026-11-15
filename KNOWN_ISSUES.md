@@ -1,12 +1,13 @@
 # KNOWN ISSUES & TECHNICAL DEBT TRACKER
 
-## Phase 07 Status: Complete & Verified — No Active Blockers
+## Phase 08 Status: Complete & Verified — No Active Blockers
 
 ### Notes & Verifications:
-1. **Model Parameter Cross-Tenant Protection**:
-   - `PreventCrossTenantAccess` middleware automatically introspects all incoming route model parameters with `tenant_id` and blocks cross-tenant access with 403 Forbidden, protecting products, categories, units, and custom resources from URL and ID manipulation.
-2. **Barcode & Packaging Standards**:
-   - Standard retail in-store prefix `20` + 4-digit tenant identifier + 6-digit sequential/random digits ensures zero barcode collisions between tenants.
-   - 50mm × 35mm thermal sticker view formatted for direct printing to barcode label printers.
-3. **Wholesale to Retail Unit Conversion Formula**:
-   - Multiplier stored as decimal (12, 4) allows exact representation for auction sacks (Mann = 40.0000, Peti = 15.0000, Katta = 50.0000) for inventory stock deductions in Phase 09 and Phase 10.
+1. **Party Ledger Audit Integrity**:
+   - `party_ledger_entries` records all financial interactions (opening balances, supplier payments, customer receipts) with explicit debit, credit, running balance, and user creator timestamps.
+   - Deleting suppliers or customers with non-zero balances is strictly prohibited to safeguard accounting integrity.
+2. **Real-time Cash Drawer & Bank Account Synchronization**:
+   - Payments to suppliers decrement the selected cash till/bank account and debit the supplier payable balance atomically in a database transaction.
+   - Receipts from customers increment the financial account and credit the customer receivable balance atomically.
+3. **Credit Limit Safety Controls**:
+   - Customer accounts support strict credit limits and payment windows (credit days) with visual utilization gauges on profile screens.

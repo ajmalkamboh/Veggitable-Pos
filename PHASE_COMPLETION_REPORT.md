@@ -1,8 +1,8 @@
-# PHASE COMPLETION REPORT: PHASE 07 – PRODUCT, CATEGORIES & UNIT MANAGEMENT
+# PHASE COMPLETION REPORT: PHASE 08 – SUPPLIER & CUSTOMER MANAGEMENT
 
 ## Executive Summary
-Phase 07 has been **genuinely completed** in strict compliance with the Master Development Instructions.
-Vegetable, fruit, and wholesale lot catalog management, multi-level category & subcategory hierarchies, measurement unit master with bulk-to-retail conversion multipliers (e.g. 1 Mann = 40 Kg), auto-generated sequential and EAN barcodes, cost/selling price rules with profit margin calculation, perishability indicators with shelf life tracking, thermal barcode sticker sheet printing, strict cross-tenant parameter isolation, and role-based permissions have been fully implemented, tested, and styled.
+Phase 08 has been **genuinely completed** in strict compliance with the Master Development Instructions.
+Comprehensive supplier management (Mandi commission agents / Aarthi, farm growers, wholesale merchants) and customer management (counter retail walk-in, regular credit accounts, hotels, restaurants, caterers) have been developed with opening balance tracking, dual-entry party ledger statements (`party_ledger_entries`), direct payment and receipt recording modals linked to cash/bank accounts, credit limit monitoring, bilingual search, tenant isolation, and automated tests.
 
 ---
 
@@ -13,102 +13,88 @@ Vegetable, fruit, and wholesale lot catalog management, multi-level category & s
 - **Phase 04**: Authentication lifecycle, multi-tenant roles & permissions matrix, custom roles, branch boundary enforcement, and security audit trails.
 - **Phase 05**: 4-Step business onboarding wizard, profile/logo setup, fiscal year, branch configuration, cash & bank accounts, units & categories seeding, and operational route gating.
 - **Phase 06**: Bilingual English and Urdu localization, RTL layout support, Nastaliq typography, persistent user and business language preferences, an Eloquent bilingual search trait, thermal receipt print layout.
+- **Phase 07**: Vegetable and fruit catalog management, category & subcategory hierarchy, measurement units & conversion multipliers, auto-generated SKU and barcodes, pricing rules, and thermal barcode stickers.
 
 ---
 
 ## 2. What Was Newly Implemented
-1. **Master Categories & Subcategories Hierarchy**:
-   - `CategoryController`: Full CRUD for product and expense categories.
-   - Self-referencing parent-child relationships allowing unlimited subcategories (`Leafy Vegetables` -> `Fresh Herbs`).
-   - Image upload for category banners/icons.
-   - Protection preventing deletion of categories containing subcategories or linked products.
-2. **Measurement Units & Conversion Multipliers**:
-   - `UnitController`: Custom measurement unit CRUD + wholesale-to-retail conversion formula management.
-   - Built-in support for Mandi bulk lot units (`Mann`, `Bori`, `Peti`, `Katta`, `Dhari`) and retail counter units (`Kg`, `Gram`, `Dozen`, `Piece`).
-   - `UnitConversion` model with dynamic multiplier execution: `convert($quantity)`.
-   - Protection against deleting system default units or units referenced by active products and conversion rules.
-3. **Vegetables & Fruits Product Catalog**:
-   - `ProductController`: Comprehensive catalog management.
-   - Product types: `Fresh Vegetable`, `Fresh Fruit`, `Mandi Auction Lot`, `Pre-packed / Processed`.
-   - Dual-language names (`name`, `name_ur`), automatic SKU code generation (`PRD-XXXXXX`), and barcode generator using in-store prefix `20` + tenant code + random sequence.
-   - Purchase unit, selling unit, stock unit, and purchase-to-stock conversion factor.
-   - Pricing rules: Cost price, retail selling price, minimum floor selling price, and profit margin percentage accessor (`$product->profit_margin_percentage`).
-   - Perishability flag (`is_perishable`) and shelf life tracking in days (`shelf_life_days`).
-   - Low stock reorder alert threshold (`reorder_level`).
-   - Soft deletes support preserving historical transaction links.
-4. **Thermal Barcode Sticker Printing**:
-   - `resources/views/tenant/products/barcode.blade.php`: Standard 50mm × 35mm thermal sticker sheet layout with business name, English and Urdu product title, Libre Barcode 128 rendering, human-readable barcode numbers, and retail price tags.
-5. **Multi-Tenant Security Enforcement**:
-   - Enhanced `PreventCrossTenantAccess` middleware to introspect all incoming route model parameters (`Product`, `Category`, `Unit`, `TenantRecord`) and reject cross-tenant access with 403 Forbidden.
-   - Controllers include defensive authorization checks (`abort_if($model->tenant_id !== $tenant->id, 404)`).
-   - Protected with permissions: `products.view`, `products.manage`, `categories.manage`, `units.manage`.
+1. **Supplier Directory & Mandi Commission Agents (Aarthi)**:
+   - `SupplierController`: Full vendor CRUD, Mandi shop/stall tracking, commission percentage (e.g. 5%), bank account details, and payment credit terms.
+   - Initial opening balance setup automatically posted to `party_ledger_entries`.
+   - Sequential code generator: `SUP-XXXX`.
+   - Direct supplier settlement modal: Records cash/bank payment, decrements financial account balance, updates supplier payable balance, and appends to ledger.
+2. **Customer Accounts & Commercial Credit Clients**:
+   - `CustomerController`: Complete customer account management.
+   - Classification: Walk-in retail counter, hotel/restaurant, wholesale buyer, catering service.
+   - Credit controls: Maximum credit limit amount and allowed payment window (credit days) with real-time visual progress gauge.
+   - Sequential code generator: `CUST-XXXX`.
+   - Direct customer receipt modal: Records payment receipt, increments cash till or bank balance, updates customer receivable balance, and appends to ledger.
+3. **Dual-Entry Party Ledger History**:
+   - `party_ledger_entries` table tracking date, reference number, description, debit, credit, running balance, and user creator audit info for every supplier and customer transaction.
+   - Protection preventing deletion/archival of suppliers or customers with unsettled outstanding balances.
+4. **Bilingual Search & Typography**:
+   - Native English and Urdu searches (`searchBilingual`) supporting Urdu titles (e.g. "الرحمٰن کمیشن ایجنٹ", "پی سی ہوٹل").
+5. **Multi-Tenant Isolation & Role Authorization**:
+   - `PreventCrossTenantAccess` middleware ensures cross-tenant inspection attempts are blocked with 403 Forbidden.
+   - Protected by permissions: `suppliers.view`, `suppliers.manage`, `customers.view`, `customers.manage`.
 
 ---
 
 ## 3. Database Changes
-1. **New Migration**: `database/migrations/2026_11_14_220000_add_parent_and_image_to_categories_table.php`
-   - Added `parent_id` foreign key and `image_path` to `categories`.
-2. **New Migration**: `database/migrations/2026_11_14_220010_create_unit_conversions_table.php`
-   - Created `unit_conversions` table with unique constraint on `['tenant_id', 'from_unit_id', 'to_unit_id']`.
-3. **New Migration**: `database/migrations/2026_11_14_220020_create_products_table.php`
-   - Created `products` table with unit foreign keys, pricing decimals, soft deletes, and composite unique `['tenant_id', 'code']`.
+1. **New Migration**: `database/migrations/2026_11_15_043025_create_suppliers_table.php`
+   - Created `suppliers` table with vendor classifications, Mandi stall details, commission rates, bank accounts, and composite indexes.
+2. **New Migration**: `database/migrations/2026_11_15_043032_create_customers_table.php`
+   - Created `customers` table with credit limits, credit days, tax IDs, opening balances, and composite indexes.
+3. **New Migration**: `database/migrations/2026_11_15_043039_create_party_ledger_entries_table.php`
+   - Created `party_ledger_entries` table with debit, credit, balance, reference tracking, and polymorphic party indexing.
 4. **Updated Models**:
-   - `App\Models\Product`
-   - `App\Models\UnitConversion`
-   - `App\Models\Unit`
-   - `App\Models\Category`
+   - `App\Models\Supplier`
+   - `App\Models\Customer`
+   - `App\Models\PartyLedgerEntry`
    - `App\Models\Tenant`
-   - `App\Models\AuditLog`
 5. **Updated Seeders**:
-   - `RoleAndPermissionSeeder`: Seeded `products.view`, `products.manage`, `categories.manage`, `units.manage`.
+   - `RoleAndPermissionSeeder`: Added `suppliers.view`, `suppliers.manage`, `customers.view`, `customers.manage` and assigned across manager, accountant, purchase operator, cashier, and viewer roles.
 
 ---
 
 ## 4. Routes and Pages Created
-- `GET /tenant/categories` (`tenant.categories.index`)
-- `GET /tenant/categories/create` (`tenant.categories.create`)
-- `POST /tenant/categories` (`tenant.categories.store`)
-- `GET /tenant/categories/{category}/edit` (`tenant.categories.edit`)
-- `PUT /tenant/categories/{category}` (`tenant.categories.update`)
-- `DELETE /tenant/categories/{category}` (`tenant.categories.destroy`)
-- `GET /tenant/units` (`tenant.units.index`)
-- `GET /tenant/units/create` (`tenant.units.create`)
-- `POST /tenant/units` (`tenant.units.store`)
-- `GET /tenant/units/{unit}/edit` (`tenant.units.edit`)
-- `PUT /tenant/units/{unit}` (`tenant.units.update`)
-- `DELETE /tenant/units/{unit}` (`tenant.units.destroy`)
-- `POST /tenant/units/conversions` (`tenant.units.conversions.store`)
-- `DELETE /tenant/units/conversions/{conversion}` (`tenant.units.conversions.destroy`)
-- `GET /tenant/products` (`tenant.products.index`)
-- `GET /tenant/products/create` (`tenant.products.create`)
-- `POST /tenant/products` (`tenant.products.store`)
-- `GET /tenant/products/{product}` (`tenant.products.show`)
-- `GET /tenant/products/{product}/edit` (`tenant.products.edit`)
-- `PUT /tenant/products/{product}` (`tenant.products.update`)
-- `DELETE /tenant/products/{product}` (`tenant.products.destroy`)
-- `GET /tenant/products/{product}/barcode` (`tenant.products.barcode`)
+- `GET /tenant/suppliers` (`tenant.suppliers.index`)
+- `GET /tenant/suppliers/create` (`tenant.suppliers.create`)
+- `POST /tenant/suppliers` (`tenant.suppliers.store`)
+- `GET /tenant/suppliers/{supplier}` (`tenant.suppliers.show`)
+- `GET /tenant/suppliers/{supplier}/edit` (`tenant.suppliers.edit`)
+- `PUT /tenant/suppliers/{supplier}` (`tenant.suppliers.update`)
+- `DELETE /tenant/suppliers/{supplier}` (`tenant.suppliers.destroy`)
+- `POST /tenant/suppliers/{supplier}/payment` (`tenant.suppliers.payment`)
+- `GET /tenant/customers` (`tenant.customers.index`)
+- `GET /tenant/customers/create` (`tenant.customers.create`)
+- `POST /tenant/customers` (`tenant.customers.store`)
+- `GET /tenant/customers/{customer}` (`tenant.customers.show`)
+- `GET /tenant/customers/{customer}/edit` (`tenant.customers.edit`)
+- `PUT /tenant/customers/{customer}` (`tenant.customers.update`)
+- `DELETE /tenant/customers/{customer}` (`tenant.customers.destroy`)
+- `POST /tenant/customers/{customer}/receipt` (`tenant.customers.receipt`)
 
 ---
 
 ## 5. Tests Executed and Results
-- Created test suite: `tests/Feature/Phase07ProductCategoryUnitManagementTest.php` (9 test cases):
-  1. `test_user_can_create_category_and_subcategory` -> **PASSED**
-  2. `test_cannot_delete_category_with_subcategories` -> **PASSED**
-  3. `test_unit_crud_and_conversion_multiplier_calculation` -> **PASSED**
-  4. `test_system_default_units_cannot_be_deleted` -> **PASSED**
-  5. `test_user_can_create_product_with_auto_generated_barcode_and_margin_calculation` -> **PASSED**
-  6. `test_bilingual_product_search_works_in_english_and_urdu` -> **PASSED**
-  7. `test_strict_tenant_isolation_for_products_categories_and_units` -> **PASSED**
-  8. `test_barcode_sticker_sheet_is_accessible` -> **PASSED**
-  9. `test_permissions_protect_product_management_routes` -> **PASSED**
+- Created test suite: `tests/Feature/Phase08SupplierCustomerManagementTest.php` (8 test cases):
+  1. `test_user_can_create_supplier_with_opening_balance_and_ledger_entry` -> **PASSED**
+  2. `test_user_can_create_customer_with_credit_limit_and_opening_balance` -> **PASSED**
+  3. `test_recording_payment_to_supplier_updates_balance_and_account` -> **PASSED**
+  4. `test_recording_receipt_from_customer_updates_balance_and_account` -> **PASSED**
+  5. `test_bilingual_search_for_suppliers_and_customers` -> **PASSED**
+  6. `test_strict_tenant_isolation_for_suppliers_and_customers` -> **PASSED**
+  7. `test_cannot_delete_supplier_or_customer_with_unsettled_balance` -> **PASSED**
+  8. `test_permissions_protect_supplier_and_customer_actions` -> **PASSED**
 - Complete application test suite:
-  - **62 tests passed, 278 assertions, 0 failures** (Duration: 17.19s).
+  - **70 tests passed, 326 assertions, 0 failures** (Duration: 32.20s).
 - Code style: Fixed and formatted with `vendor/bin/pint --format agent`.
 
 ---
 
 ## 6. Pending Tasks
-- Proceed to **Phase 08 – Supplier & Customer Management**.
+- Proceed to **Phase 09 – Purchase Management**.
 
 ---
 
@@ -118,5 +104,5 @@ Vegetable, fruit, and wholesale lot catalog management, multi-level category & s
 ---
 
 ## 8. Completion Determination
-**Is Phase 07 genuinely complete?**: **YES**.
-All requirements for product catalog, category/subcategory hierarchies, measurement units, conversion rules, barcode printing, bilingual search, tenant isolation, and tests are complete.
+**Is Phase 08 genuinely complete?**: **YES**.
+All supplier and customer management features, Mandi commission agent workflows, credit limit controls, dual-entry ledger statements, cash/bank synchronization, bilingual search, tenant isolation, and automated tests are fully implemented and verified.

@@ -37,4 +37,10 @@ return [
     'perishable' => 'Perishable Produce',
     'shelf_life' => 'Shelf Life',
     'reorder_level' => 'Reorder Alert Level',
+    'commission_agent' => 'Mandi Commission Agent (Aarthi)',
+    'farmer' => 'Direct Farmer / Grower',
+    'payable_balance' => 'Payable Balance',
+    'receivable_balance' => 'Receivable Balance',
+    'credit_limit' => 'Credit Limit',
+    'credit_days' => 'Credit Days',
 ];

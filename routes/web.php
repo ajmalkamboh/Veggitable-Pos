@@ -11,9 +11,11 @@ use App\Http\Controllers\SuperAdmin\SubscriptionPlanController as SuperAdminPlan
 use App\Http\Controllers\SuperAdmin\TenantController as SuperAdminTenantController;
 use App\Http\Controllers\Tenant\AuditLogController as TenantAuditController;
 use App\Http\Controllers\Tenant\CategoryController as TenantCategoryController;
+use App\Http\Controllers\Tenant\CustomerController as TenantCustomerController;
 use App\Http\Controllers\Tenant\OnboardingController as TenantOnboardingController;
 use App\Http\Controllers\Tenant\ProductController as TenantProductController;
 use App\Http\Controllers\Tenant\RoleController as TenantRoleController;
+use App\Http\Controllers\Tenant\SupplierController as TenantSupplierController;
 use App\Http\Controllers\Tenant\UnitController as TenantUnitController;
 use App\Http\Controllers\Tenant\UserController as TenantUserController;
 use App\Http\Controllers\TenantRecordController;
@@ -156,6 +158,30 @@ Route::middleware(['auth', 'tenant.active', 'tenant.prevent_cross'])->group(func
             Route::put('/{product}', [TenantProductController::class, 'update'])->name('update');
             Route::delete('/{product}', [TenantProductController::class, 'destroy'])->name('destroy');
             Route::get('/{product}/barcode', [TenantProductController::class, 'barcode'])->name('barcode');
+        });
+
+        // Suppliers (Commission Agents & Farmers)
+        Route::prefix('tenant/suppliers')->name('tenant.suppliers.')->group(function () {
+            Route::get('/', [TenantSupplierController::class, 'index'])->name('index');
+            Route::get('/create', [TenantSupplierController::class, 'create'])->name('create');
+            Route::post('/', [TenantSupplierController::class, 'store'])->name('store');
+            Route::get('/{supplier}', [TenantSupplierController::class, 'show'])->name('show');
+            Route::get('/{supplier}/edit', [TenantSupplierController::class, 'edit'])->name('edit');
+            Route::put('/{supplier}', [TenantSupplierController::class, 'update'])->name('update');
+            Route::delete('/{supplier}', [TenantSupplierController::class, 'destroy'])->name('destroy');
+            Route::post('/{supplier}/payment', [TenantSupplierController::class, 'recordPayment'])->name('payment');
+        });
+
+        // Customers (Retail Walk-in & Commercial Accounts)
+        Route::prefix('tenant/customers')->name('tenant.customers.')->group(function () {
+            Route::get('/', [TenantCustomerController::class, 'index'])->name('index');
+            Route::get('/create', [TenantCustomerController::class, 'create'])->name('create');
+            Route::post('/', [TenantCustomerController::class, 'store'])->name('store');
+            Route::get('/{customer}', [TenantCustomerController::class, 'show'])->name('show');
+            Route::get('/{customer}/edit', [TenantCustomerController::class, 'edit'])->name('edit');
+            Route::put('/{customer}', [TenantCustomerController::class, 'update'])->name('update');
+            Route::delete('/{customer}', [TenantCustomerController::class, 'destroy'])->name('destroy');
+            Route::post('/{customer}/receipt', [TenantCustomerController::class, 'recordReceipt'])->name('receipt');
         });
     });
 });

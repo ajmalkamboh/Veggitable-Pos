@@ -67,6 +67,13 @@
         </a>
       </li>
 
+      <li class="nav-item">
+        <a class="nav-link {{ request()->routeIs('superadmin.backups.*') ? 'active' : '' }}" href="{{ route('superadmin.backups.index') }}" data-tooltip="Backups & Security">
+          <i class="ph-duotone ph-shield-checkered"></i>
+          <span>Backups & Security Audit</span>
+        </a>
+      </li>
+
       <!-- Tenant Operations Section -->
       <li class="nav-heading"><span>Shop Operations</span></li>
 
@@ -221,6 +228,13 @@
         <a class="nav-link {{ request()->routeIs('tenant.hardware.*') ? 'active' : '' }}" href="{{ route('tenant.hardware.index') }}" data-tooltip="{{ __('Hardware & Scales') }}">
           <i class="ph-duotone ph-cpu"></i>
           <span>{{ __('Hardware & Scales') }}</span>
+        </a>
+      </li>
+
+      <li class="nav-item {{ request()->routeIs('tenant.backup.*') ? 'active' : '' }}">
+        <a class="nav-link {{ request()->routeIs('tenant.backup.*') ? 'active' : '' }}" href="{{ route('tenant.backup.index') }}" data-tooltip="{{ __('Data Export & Backup') }}">
+          <i class="ph-duotone ph-database"></i>
+          <span>{{ __('Data Export & Backup') }}</span>
         </a>
       </li>
 

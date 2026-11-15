@@ -667,3 +667,39 @@ Multi-channel notification inbox table storing automated and triggered business 
 - `daily_wastage_digest`: Boolean toggle for evening spoilage summary.
 - `credit_limit_alert`: Boolean toggle for overdue customer credit alerts.
 - `supplier_payable_alert`: Boolean toggle for mandi commission agent payable reminders.
+
+---
+
+## 14. Security, Isolation Auditing & Disaster Recovery Architecture (Phase 18)
+
+### Multi-Tenant Partitioning Verification Matrix
+All 25 transactional tables implement strict `tenant_id` constraints, indexing, and foreign keys. The automated `SecurityAuditService::auditTenantIsolation()` audits:
+1. `branches`: `INDEX(tenant_id)`, foreign key cascade
+2. `users`: `INDEX(tenant_id)`, nullable strictly for platform super admins
+3. `categories`: `INDEX(tenant_id, slug)`
+4. `units`: `INDEX(tenant_id, code)`
+5. `products`: `INDEX(tenant_id, code)`, `INDEX(tenant_id, category_id)`
+6. `customers`: `INDEX(tenant_id, code)`
+7. `suppliers`: `INDEX(tenant_id, code)`
+8. `purchase_invoices` & `purchase_invoice_items`: Composite index `[tenant_id, branch_id, date]`
+9. `sales_invoices` & `sales_invoice_items`: Composite index `[tenant_id, branch_id, date]`
+10. `sales_invoice_payments`: `INDEX(tenant_id)`
+11. `inventory_stocks`: `INDEX(tenant_id, branch_id, product_id)`
+12. `stock_movements`: `INDEX(tenant_id, branch_id, product_id, created_at)`
+13. `stock_transfers` & `stock_transfer_items`: `INDEX(tenant_id)`
+14. `stock_adjustments` & `stock_adjustment_items`: `INDEX(tenant_id)`
+15. `wastages` & `wastage_items`: `INDEX(tenant_id, branch_id, date)`
+16. `expenses`: `INDEX(tenant_id, branch_id, date)`
+17. `financial_accounts`: `INDEX(tenant_id)`
+18. `chart_of_accounts`: `INDEX(tenant_id, account_code)`
+19. `journal_entries` & `journal_entry_lines`: `INDEX(tenant_id, entry_no)`
+20. `pos_sessions`: `INDEX(tenant_id, user_id, status)`
+21. `notifications`: `INDEX(tenant_id, read_at)`
+
+### Disaster Recovery & Backup Storage
+- **Directory**: `storage/app/backups/`
+- **File Formats**:
+  - Full Platform DB: `veggitable_backup_YYYY-MM-DD_HHmmss.sql.gz` (Gzip compressed SQL snapshot)
+  - Isolated Tenant Data Export: `tenant_{slug}_YYYY-MM-DD_HHmmss.json` (Structured multi-module JSON package)
+- **Manifest**: `storage/app/backups/manifest.json` tracks filename, size, timestamp, SHA-256 tamper-evident checksum, and compression flag.
+- **Retention**: Automated 30-day purge cycle via `veggitable:clean-backups` or `veggitable:backup --clean`.

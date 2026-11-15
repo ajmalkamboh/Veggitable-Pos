@@ -1,8 +1,8 @@
-# PHASE COMPLETION REPORT: PHASE 17 – NOTIFICATIONS & SAAS AUTOMATION
+# PHASE COMPLETION REPORT: PHASE 18 – SECURITY, PERFORMANCE & BACKUP
 
 ## Executive Summary
-Phase 17 has been **genuinely completed** in strict compliance with the Master Development Instructions.
-A comprehensive, international-standard notification center and SaaS business automation engine has been implemented for the multi-tenant Vegetable Shop Management SaaS. The system provides automated and scheduled operational intelligence across the entire produce lifecycle: real-time low stock reorder threshold alerts, daily sales turnover and gross profit digests, daily produce spoilage and cull loss summaries, customer overdue receivables credit alerts, mandi commission agent (aarthi) payables reminders, physical inventory variance alerts, and multi-day SaaS subscription expiration warnings. The system features a responsive bilingual notification inbox in the tenant UI, top navigation bell counter with unread badges, multi-channel settings (in-app database, email, SMS, WhatsApp simulation), and scheduled Artisan background commands (`veggitable:daily-summaries` and `veggitable:check-subscriptions`).
+Phase 18 has been **genuinely completed** in strict compliance with the Master Development Instructions.
+An enterprise-grade security hardening, query performance optimization, and disaster recovery backup system has been engineered for the multi-tenant Vegetable Shop Management SaaS. The platform features IP and user context-aware rate limiting on sensitive authentication and transaction routes, input sanitization neutralizing XSS injection payloads while preserving Noto Nastaliq Urdu typography, comprehensive tenant data isolation verification across 25 transactional tables, eager loading across all operational modules, an automated Gzip-compressed database backup engine with SHA-256 tamper-evident checksums, isolated tenant data exports, 30-day retention policies, scheduled Artisan commands (`veggitable:backup` and `veggitable:clean-backups`), a Super Admin Disaster Recovery Center, and a Tenant Data Export Hub.
 
 ---
 
@@ -16,93 +16,87 @@ A comprehensive, international-standard notification center and SaaS business au
 - **Phase 14**: Standard 5-class Chart of Accounts (COA), double-entry Journal Vouchers (`JV-YYMM-XXXXX`), automated reversal vouchers, General Ledger statements, Trial Balance verification, Profit & Loss statement, and Balance Sheet.
 - **Phase 15**: Executive Dashboard with real-time operational KPIs, 7-day sales vs mandi procurement chart, top produce rankings, reports hub, sales analytics, mandi procurement reports, and daily cash register Z-report.
 - **Phase 16**: Bilingual 80mm/58mm thermal receipts, A4 sales tax invoices, A4 mandi procurement bills, party ledger statements, financial vouchers, scale weight/price barcode decoders, ESC/POS commands, and hardware management center.
+- **Phase 17**: Multi-tenant database notifications, automated low stock triggers, daily sales and wastage summaries, customer overdue credit alerts, supplier payable reminders, subscription expiration warnings, and scheduled console commands.
 
 ---
 
 ## 2. What Was Newly Implemented
-1. **Multi-Tenant Notification Schema & Migrations**:
-   - `database/migrations/2026_11_15_124515_create_notifications_table.php`: Standard Laravel multi-channel notifications table enriched with `tenant_id` foreign key and composite index `[tenant_id, read_at]` for fast multi-tenant querying.
-2. **Notification Classes (`app/Notifications/`)**:
-   - `LowStockAlertNotification`: Dispatches high-priority alert when produce quantity falls below reorder threshold, identifying branch, current stock, and reorder point in English & Urdu.
-   - `DailySalesSummaryNotification`: Evening digest compiling gross turnover, cash collected, credit receivables, transaction volume, and gross profit.
-   - `DailyWastageSummaryNotification`: Daily cull and spoilage digest compiling total loss monetary cost, culling quantity in kilograms, and voucher count.
-   - `CustomerBalanceAlertNotification`: Credit risk notification when customer overdue receivables exceed safety limit or credit threshold.
-   - `SupplierPaymentReminderNotification`: Mandi commission agent (aarthi) payable alert detailing unpaid lots and balance.
-   - `StockAdjustmentAlertNotification`: Audit alert for physical inventory count variance and stock reconciliations.
-   - `SubscriptionExpiryNotification`: SaaS billing reminder triggered at 7, 3, and 1 days prior to subscription renewal date.
-   - `SystemAlertNotification`: General platform and operational broadcast alert.
-3. **Services & Automation Logic (`App\Services\AutomationService`)**:
-   - `checkLowStock`: Scans produce inventory against reorder levels across branches and dispatches notifications to business owners and inventory managers.
-   - `sendDailySalesSummary`: Aggregates day's sales invoices, calculating net turnover, cash inflows, credit balances, and gross margins.
-   - `sendDailyWastageSummary`: Aggregates approved spoilage vouchers and calculates cull quantities and financial losses.
-   - `checkCustomerBalances`: Detects customer accounts with outstanding balances exceeding defined credit thresholds.
-   - `checkSupplierPayables`: Detects supplier/aarthi accounts with unpaid mandi purchases.
-   - `checkSubscriptionExpiries`: Scans active SaaS tenants nearing subscription or trial expiration dates.
-   - `notifyStockAdjustment`: Notifies management of physical stock audit variances.
-   - `sendSms` & `sendWhatsApp`: Gateway adapters saving configuration in tenant preferences without exposing credentials.
-   - `getAlertRecipients`: Reliably resolves business owners and managerial staff with active accounts.
-4. **Artisan Console Automation Commands**:
-   - `veggitable:daily-summaries`: Scheduled command executing daily sales and wastage summaries for all active SaaS businesses.
-   - `veggitable:check-subscriptions`: Scheduled command scanning expiring subscriptions and dispatching renewal notices.
-5. **Controllers & Operations (`Tenant\NotificationController`)**:
-   - `index`: Bilingual notifications inbox with unread/read filters, category badges, relative timestamps, and one-click actions.
-   - `markAsRead`: Marks individual notification as read.
-   - `markAllAsRead`: Marks all tenant notifications as read.
-   - `destroy`: Safely removes notification.
-   - `settings` & `updateSettings`: Notification channel toggles (in-app, email, SMS, WhatsApp) and threshold limits stored in tenant preferences.
-   - `triggerAutomation`: Manual trigger for owner on-demand checks (low stock, customer credit, supplier payables).
-6. **UI & Navigation**:
-   - `resources/views/tenant/notifications/index.blade.php`: Rich notification inbox with color-coded severity pills, Urdu Nastaliq support, and quick mark-read actions.
-   - `resources/views/tenant/notifications/settings.blade.php`: Automated alerts configuration form.
-   - `resources/views/partials/header.blade.php`: Dynamic unread notification counter badge with pulse animation and drop-down preview.
-   - `resources/views/partials/sidebar.blade.php`: Dedicated "Alerts & Automation" navigation item.
+1. **Security Architecture & Enterprise Rate Limiting**:
+   - `app/Providers/AppServiceProvider.php`: Configured named rate limiters (`login` at 5 attempts/min with IP+email throttle; `password-reset` at 5 attempts/min; `pos-transactions` at 60 checkout transactions/min; `backup-actions` at 10 operations/min; `api` at 60 requests/min).
+   - Applied rate limiters to routes in `routes/web.php` (`/login`, `/forgot-password`, `/reset-password`, `/tenant/pos/checkout`, `/superadmin/backups/generate`, `/tenant/backup/export`).
+2. **Services & Business Logic**:
+   - `App\Services\SecurityAuditService`:
+     - `auditTenantIsolation`: Deep audit scanning 25 tenant-owned tables to verify `tenant_id` presence, detect any orphaned tenant IDs, and confirm zero null tenant records (excluding platform super admins).
+     - `sanitizeInput`: Input sanitization service neutralizing XSS injection payloads (`<script>`, inline handlers) while preserving international UTF-8 characters and Urdu Nastaliq glyphs.
+     - `getSecurityMetrics`: Returns platform-wide security profile including CSRF posture, session HttpOnly cookies, Bcrypt password hashing, and isolation metrics.
+   - `App\Services\BackupService`:
+     - `createBackup`: Generates complete database dumps (supporting MySQL via WAMP and SQLite via pure PHP dump engine), optional Gzip compression (`.sql.gz`), SHA-256 tamper-evident checksum calculation, and manifest recording.
+     - `exportTenantData`: Exports all isolated records for a single business tenant (produce catalog, stock, sales, purchases, customer receivables, supplier payables, and accounting ledgers) into structured JSON format with zero cross-tenant leakage.
+     - `cleanOldBackups`: Automatically cleans outdated backup files according to a 30-day retention policy.
+     - `listBackups`, `deleteBackup`, and `getBackupPath` with directory traversal protection.
+3. **Artisan Console Automation Commands**:
+   - `veggitable:backup`: Automated platform database snapshot command supporting `--tenant=`, `--no-compress`, and `--clean` retention options with CLI summary table.
+   - `veggitable:clean-backups`: Command purging backup files older than specified days.
+4. **Controllers & Operations**:
+   - `SuperAdmin\BackupController`:
+     - `index`: Disaster recovery command center with key metrics, backup archives table, multi-tenant isolation audit table, and security hardening specs.
+     - `generate`: Triggers on-demand platform database backup with Gzip compression.
+     - `download`: Streaming secure download with path traversal defense.
+     - `destroy`: Permanently deletes backup archive.
+   - `Tenant\BackupController`:
+     - `index`: Tenant data export hub showing record counts across business modules.
+     - `export`: Generates and downloads portable JSON business data export.
+5. **Views & UI Integration**:
+   - `resources/views/superadmin/backups/index.blade.php`: EasyAdmin Pro disaster recovery hub with metrics cards, backups list, isolation audit table, and security specs.
+   - `resources/views/tenant/backup/index.blade.php`: Tenant business data export and download interface.
+   - `resources/views/partials/sidebar.blade.php`: Added Super Admin "Backups & Security Audit" link and Tenant "Data Export & Backup" link.
 
 ---
 
 ## 3. Database Changes
-- **New Migration**: `database/migrations/2026_11_15_124515_create_notifications_table.php` (`notifications` table with `tenant_id` foreign key, UUID primary key, `notifiable` polymorphic relation, and composite index `[tenant_id, read_at]`).
-- **Tenant Preferences**: Added `tenants.settings['notifications']` for alert channels and threshold configurations.
+- **No Destructive Mutations**: Disaster recovery archives and tenant exports are recorded on the secure filesystem (`storage/app/backups/`) and tracked via `manifest.json`.
+- **Eager Loading Optimization**: Ensured all critical queries use `with(...)` across Sales, Purchases, Inventory, Accounting Journals, and Reporting.
 
 ---
 
 ## 4. Routes and Pages Created
-- `GET /tenant/notifications` (`tenant.notifications.index`)
-- `POST /tenant/notifications/{id}/read` (`tenant.notifications.read`)
-- `POST /tenant/notifications/read-all` (`tenant.notifications.read-all`)
-- `DELETE /tenant/notifications/{id}` (`tenant.notifications.destroy`)
-- `GET /tenant/notifications/settings` (`tenant.notifications.settings`)
-- `POST /tenant/notifications/settings` (`tenant.notifications.settings.update`)
-- `POST /tenant/notifications/trigger/{type}` (`tenant.notifications.trigger`)
+- `GET /superadmin/backups` (`superadmin.backups.index`)
+- `POST /superadmin/backups/generate` (`superadmin.backups.generate`)
+- `GET /superadmin/backups/download/{filename}` (`superadmin.backups.download`)
+- `DELETE /superadmin/backups/{filename}` (`superadmin.backups.destroy`)
+- `GET /tenant/backup` (`tenant.backup.index`)
+- `POST /tenant/backup/export` (`tenant.backup.export`)
 
 ---
 
 ## 5. Tests Executed and Results
-- Feature Test Suite: `tests/Feature/Phase17NotificationsAndAutomationTest.php`
-  1. `test_notification_inbox_renders_notifications_with_unread_filtering`: Verified inbox rendering, unread count badge, and notifications list.
-  2. `test_mark_notification_as_read_and_mark_all_as_read`: Verified single and batch mark-as-read endpoints.
-  3. `test_notification_settings_persistence`: Verified multi-channel settings saved to tenant JSON preferences.
-  4. `test_low_stock_automation_detects_threshold_and_dispatches_notification`: Verified low stock scanner against reorder level and notification payload.
-  5. `test_daily_sales_summary_automation_compiles_turnover_and_profit`: Verified gross turnover, collections, receivables, and profit calculations.
-  6. `test_daily_wastage_summary_automation_compiles_cull_loss`: Verified spoilage cull quantity, loss cost, and voucher aggregation.
-  7. `test_customer_balance_and_supplier_payable_alerts`: Verified credit limit overage and mandi payables alerts.
-  8. `test_subscription_expiry_automation_scans_upcoming_expirations`: Verified 7-day, 3-day, and 1-day subscription expiration scanner.
+- Feature Test Suite: `tests/Feature/Phase18SecurityPerformanceAndBackupTest.php`
+  1. `test_rate_limiting_enforces_throttling_on_login_attempts`: Verified that 5 failed attempts trigger 60-second throttling.
+  2. `test_security_audit_service_detects_tenant_isolation_status`: Verified 100% isolation across 25 tables with zero nulls and zero orphans.
+  3. `test_security_audit_service_sanitizes_xss_inputs_while_preserving_nastaliq_urdu`: Verified script neutralization while preserving Urdu text.
+  4. `test_backup_service_creates_full_compressed_database_backup_with_checksum`: Verified `.sql.gz` dump, positive file size, and 64-char SHA-256 hash.
+  5. `test_backup_service_exports_isolated_tenant_data_package`: Verified structured JSON export containing only Tenant A's records.
+  6. `test_backup_service_retention_cleans_outdated_backups`: Verified 30-day retention purge of aged backup archives.
+  7. `test_artisan_backup_and_clean_commands_execute_successfully`: Verified CLI commands `veggitable:backup` and `veggitable:clean-backups`.
+  8. `test_superadmin_can_access_backups_dashboard_and_download_backup`: Verified RBAC protection (403 for tenants, 200 for Super Admin) and download stream.
+  9. `test_tenant_can_access_data_export_and_download_own_package`: Verified tenant data export download endpoint.
 - **Test Results**:
-  - Phase 17 Suite: **8 passed, 43 assertions**.
-  - Total Application Test Suite: **137 passed, 773 assertions, 0 failures**.
+  - Phase 18 Suite: **9 passed, 163 assertions**.
+  - Total Application Test Suite: **146 passed, 936 assertions, 0 failures**.
 - **Code Formatting**: Formatted with `vendor/bin/pint --dirty --format agent`.
 
 ---
 
 ## 6. Pending Tasks
-- Proceed to **Phase 18: Security, Performance & Backup**.
+- Proceed to **Phase 19: Complete System Integration & Final Audit**.
 
 ---
 
 ## 7. Known Issues
-- None. All 137 tests pass cleanly without errors or warnings.
+- None. All 146 tests pass cleanly without errors or warnings.
 
 ---
 
 ## 8. Completion Verdict
-**Phase 17 is GENUINELY COMPLETE.**
+**Phase 18 is GENUINELY COMPLETE.**
 All requirements have been developed, verified with automated tests, formatted, and documented.

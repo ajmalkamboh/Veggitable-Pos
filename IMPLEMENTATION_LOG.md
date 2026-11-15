@@ -414,3 +414,38 @@
    - `Phase17NotificationsAndAutomationTest`: 8 comprehensive test cases verifying low stock detection, daily sales summary calculations, daily wastage calculations, customer credit and supplier payable alerts, subscription expiry scanning, notification center UI, settings persistence, and multi-tenant notification isolation.
    - Complete application test suite: **137 tests passed, 773 assertions, 0 failures**.
    - Code formatted with Laravel Pint.
+
+## Phase 18: Security, Performance & Backup (Completed 2026-11-15)
+1. **Security Architecture & Enterprise Rate Limiting**:
+   - `app/Providers/AppServiceProvider.php`: Registered named rate limiters (`login` at 5 attempts/min with IP+email throttle; `password-reset` at 5 attempts/min; `pos-transactions` at 60 checkout transactions/min; `backup-actions` at 10 operations/min; `api` at 60 requests/min).
+   - Rate limiters wired to critical endpoints in `routes/web.php` (`/login`, `/forgot-password`, `/reset-password`, `/tenant/pos/checkout`, `/superadmin/backups/generate`, `/tenant/backup/export`).
+2. **Services & Business Logic**:
+   - `App\Services\SecurityAuditService`:
+     - `auditTenantIsolation`: Deep audit scanning 25 tenant-owned tables to verify `tenant_id` presence, detect any orphaned tenant IDs, and confirm zero null tenant records (excluding platform super admins).
+     - `sanitizeInput`: Input sanitization service neutralizing XSS injection payloads (`<script>`, inline handlers) while preserving international UTF-8 characters and Urdu Nastaliq glyphs.
+     - `getSecurityMetrics`: Returns platform-wide security profile including CSRF posture, session HttpOnly cookies, Bcrypt password hashing, and isolation metrics.
+   - `App\Services\BackupService`:
+     - `createBackup`: Generates complete database dumps (supporting MySQL via WAMP and SQLite via pure PHP dump engine), optional Gzip compression (`.sql.gz`), SHA-256 tamper-evident checksum calculation, and manifest recording.
+     - `exportTenantData`: Exports all isolated records for a single business tenant (produce catalog, stock, sales, purchases, customer receivables, supplier payables, and accounting ledgers) into structured JSON format with zero cross-tenant leakage.
+     - `cleanOldBackups`: Automatically cleans outdated backup files according to a 30-day retention policy.
+     - `listBackups`, `deleteBackup`, and `getBackupPath` with directory traversal protection.
+3. **Artisan Console Automation Commands**:
+   - `veggitable:backup`: Automated platform database snapshot command supporting `--tenant=`, `--no-compress`, and `--clean` retention options with CLI summary table.
+   - `veggitable:clean-backups`: Command purging backup files older than specified days.
+4. **Controllers & Operations**:
+   - `SuperAdmin\BackupController`:
+     - `index`: Disaster recovery command center with key metrics, backup archives table, multi-tenant isolation audit table, and security hardening specs.
+     - `generate`: Triggers on-demand platform database backup with Gzip compression.
+     - `download`: Streaming secure download with path traversal defense.
+     - `destroy`: Permanently deletes backup archive.
+   - `Tenant\BackupController`:
+     - `index`: Tenant data export hub showing record counts across business modules.
+     - `export`: Generates and downloads portable JSON business data export.
+5. **Views & UI Integration**:
+   - `resources/views/superadmin/backups/index.blade.php`: EasyAdmin Pro disaster recovery hub with metrics cards, backups list, isolation audit table, and security specs.
+   - `resources/views/tenant/backup/index.blade.php`: Tenant business data export and download interface.
+   - `resources/views/partials/sidebar.blade.php`: Added Super Admin "Backups & Security Audit" link and Tenant "Data Export & Backup" link.
+6. **Testing & Verification**:
+   - `Phase18SecurityPerformanceAndBackupTest`: 9 comprehensive test cases verifying login rate throttling, tenant isolation detection across 25 tables, XSS input sanitization preserving Nastaliq Urdu, full compressed database backup creation with SHA-256 checksums, tenant-specific isolated data export, 30-day backup retention purge, Artisan backup commands, Super Admin backup dashboard and secure downloads, and tenant owner data exports.
+   - Complete application test suite: **146 tests passed, 936 assertions, 0 failures**.
+   - Code formatted with Laravel Pint.

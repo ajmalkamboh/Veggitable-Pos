@@ -4,6 +4,7 @@ use App\Core\MultiTenancy\TenantManager;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\SuperAdmin\BackupController as SuperAdminBackupController;
 use App\Http\Controllers\SuperAdmin\DashboardController as SuperAdminDashboardController;
 use App\Http\Controllers\SuperAdmin\ReportController as SuperAdminReportController;
 use App\Http\Controllers\SuperAdmin\SubscriptionPaymentController as SuperAdminPaymentController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\SuperAdmin\SubscriptionPlanController as SuperAdminPlan
 use App\Http\Controllers\SuperAdmin\TenantController as SuperAdminTenantController;
 use App\Http\Controllers\Tenant\AccountingController as TenantAccountingController;
 use App\Http\Controllers\Tenant\AuditLogController as TenantAuditController;
+use App\Http\Controllers\Tenant\BackupController as TenantBackupController;
 use App\Http\Controllers\Tenant\CategoryController as TenantCategoryController;
 use App\Http\Controllers\Tenant\CustomerController as TenantCustomerController;
 use App\Http\Controllers\Tenant\DashboardController as TenantDashboardController;
@@ -49,12 +51,12 @@ Route::get('/language/{locale}', [LocaleController::class, 'switch'])->name('lan
 // Authentication Routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'create'])->name('login');
-    Route::post('/login', [LoginController::class, 'store'])->name('login.store');
+    Route::post('/login', [LoginController::class, 'store'])->name('login.store')->middleware('throttle:login');
 
     Route::get('/forgot-password', [PasswordResetController::class, 'showForgotForm'])->name('password.request');
-    Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink'])->name('password.email');
+    Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink'])->name('password.email')->middleware('throttle:password-reset');
     Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
-    Route::post('/reset-password', [PasswordResetController::class, 'updatePassword'])->name('password.update');
+    Route::post('/reset-password', [PasswordResetController::class, 'updatePassword'])->name('password.update')->middleware('throttle:password-reset');
 });
 
 Route::post('/logout', [LoginController::class, 'destroy'])->name('logout')->middleware('auth');
@@ -94,6 +96,14 @@ Route::prefix('superadmin')->name('superadmin.')->middleware(['auth', 'superadmi
 
     // Platform Reports
     Route::get('/reports', [SuperAdminReportController::class, 'index'])->name('reports.index');
+
+    // Database Backups & Security Audit (Phase 18)
+    Route::prefix('backups')->name('backups.')->group(function () {
+        Route::get('/', [SuperAdminBackupController::class, 'index'])->name('index');
+        Route::post('/generate', [SuperAdminBackupController::class, 'generate'])->name('generate')->middleware('throttle:backup-actions');
+        Route::get('/download/{filename}', [SuperAdminBackupController::class, 'download'])->name('download');
+        Route::delete('/{filename}', [SuperAdminBackupController::class, 'destroy'])->name('destroy');
+    });
 });
 
 // Tenant Operations & Administration
@@ -256,7 +266,7 @@ Route::middleware(['auth', 'tenant.active', 'tenant.prevent_cross'])->group(func
         // POS Counter Terminal & Fast Billing
         Route::prefix('tenant/pos')->name('tenant.pos.')->group(function () {
             Route::get('/', [TenantPosController::class, 'counter'])->name('counter');
-            Route::post('/checkout', [TenantPosController::class, 'checkout'])->name('checkout');
+            Route::post('/checkout', [TenantPosController::class, 'checkout'])->name('checkout')->middleware('throttle:pos-transactions');
             Route::post('/hold', [TenantPosController::class, 'hold'])->name('hold');
             Route::get('/held-tickets', [TenantPosController::class, 'heldTickets'])->name('held-tickets');
             Route::get('/receipt/{salesInvoice}', [TenantPosController::class, 'receipt'])->name('receipt');
@@ -356,6 +366,12 @@ Route::middleware(['auth', 'tenant.active', 'tenant.prevent_cross'])->group(func
             Route::get('/settings', [TenantNotificationController::class, 'settings'])->name('settings');
             Route::post('/settings', [TenantNotificationController::class, 'updateSettings'])->name('settings.update');
             Route::post('/trigger', [TenantNotificationController::class, 'triggerAutomation'])->name('trigger');
+        });
+
+        // Business Data Export & Backup (Phase 18)
+        Route::prefix('tenant/backup')->name('tenant.backup.')->group(function () {
+            Route::get('/', [TenantBackupController::class, 'index'])->name('index');
+            Route::post('/export', [TenantBackupController::class, 'export'])->name('export')->middleware('throttle:backup-actions');
         });
     });
 });

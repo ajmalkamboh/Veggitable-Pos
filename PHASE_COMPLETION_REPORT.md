@@ -1,8 +1,8 @@
-# PHASE COMPLETION REPORT: PHASE 11 – POS & SALES MANAGEMENT
+# PHASE COMPLETION REPORT: PHASE 12 – WASTAGE, DAMAGE & STOCK ADJUSTMENTS
 
 ## Executive Summary
-Phase 11 has been **genuinely completed** in strict compliance with the Master Development Instructions.
-A modern, high-speed, touchscreen-ready Point of Sale (POS) and retail/wholesale sales management architecture has been developed. The system features a responsive cashier checkout terminal, instant weight/quantity and barcode scanning, multi-tender split payments (Cash, Bank, Card, Customer Credit), cashier till sessions with cash drawer variance reconciliation, parked/held shopping carts for peak-hour counter throughput, bilingual 80mm/58mm thermal receipts, itemized and full sales returns with FIFO inventory restocking, and real-time Cost of Goods Sold (COGS) and profit margin tracking.
+Phase 12 has been **genuinely completed** in strict compliance with the Master Development Instructions.
+A specialized vegetable & fruit wastage, damage, drying shrinkage, and produce quality regrading architecture has been developed. The module addresses authentic fresh produce shop operations: daily morning sorting and culling of rotten items, moisture/drying evaporation weight losses, handling/in-transit damage, pest infestation, trimming/cleaning losses, cost-basis financial loss calculation, multi-item wastage vouchers with disposal method categorisation (`discarded`, `donated`, `composted`, `salvaged`), two-step manager review & approval workflows (`pending_approval`, `approved`, `rejected`), automatic FIFO batch depletion or specific lot attribution, produce quality regrading (e.g. Grade A to Grade B conversion with cull shrinkage), and complete multi-tenant isolation.
 
 ---
 
@@ -10,95 +10,77 @@ A modern, high-speed, touchscreen-ready Point of Sale (POS) and retail/wholesale
 - **Phases 01-08**: Foundation, SaaS multi-tenancy, Super Admin, Authentication & custom roles, Onboarding wizard, English/Urdu RTL localization, Product & unit conversions, Supplier & customer dual-entry ledgers.
 - **Phase 09**: Mandi procurement, gross/tare scale weight calculations, Mandi commissions and fees, immediate cash drawer settlements, debit notes, invoice cancellation reversals.
 - **Phase 10**: Real-time multi-branch inventory, FIFO produce lot batches, expiry/shelf-life tracking, stock movements ledger, inter-branch transfers, physical stock count audits.
+- **Phase 11**: Retail cashier terminal, instant weight/barcode scanning, multi-tender split payments (Cash, Bank, Card, Customer Credit), cashier till sessions with drawer reconciliation, held carts, thermal receipts, sales returns with restocking.
 
 ---
 
 ## 2. What Was Newly Implemented
-1. **POS Till Work Shifts & Sessions**:
-   - `pos_sessions` tracking cashier opening cash float, closing cash, expected cash calculated from cash sales and returns, cash drops, discrepancy variance, and shift transaction counts.
-   - `Tenant\PosSessionController`: Dedicated actions for opening shift till and closing with cash drawer reconciliation.
-2. **High-Speed Cashier Checkout Counter**:
-   - `Tenant\PosController@counter`: Clean, fast touchscreen-friendly interface.
-   - Category filter pills, instant live search, barcode scanner integration, quick quantity buttons (+0.5kg, +1kg, +5kg), cart line-item discounts, and invoice-level discounts.
-   - Quick tender buttons (Exact, 100, 500, 1000, 5000) with automatic change calculation.
-   - Multi-tender payment methods: Cash, Bank Transfer, Card, and Customer Credit with live credit balance and limit display.
-3. **FIFO Stock Deduction & COGS Profit Tracking**:
-   - `App\Services\PosService@checkout`:
-     - Checks customer credit limit (`current_balance + credit_due <= credit_limit`).
-     - Deducts stock using FIFO batch allocation (`deductFifoBatches`), calculating exact cost price per line item.
-     - Logs outward stock movements (`sale`).
-     - Records `sales_invoices`, `sales_invoice_items`, and `sales_invoice_payments`.
-     - Automatically updates customer ledger entries (`party_ledger_entries`) and balance for credit sales.
-     - Captures invoice Gross Profit (`net_total - total_cost`).
-4. **Held / Parked Shopping Carts**:
-   - `held_sales_tickets` table supporting queue management during peak shop hours.
-   - Cashiers can park an in-progress cart with customer name/reference and recall it instantly with full line items restored.
-5. **Thermal Receipt Printing**:
-   - Bilingual (English & Urdu Nastaliq typography) thermal receipt view supporting standard 80mm and 58mm POS receipt printers with auto-print dialog, transaction summary, tax, and thank you message.
-6. **Sales Invoices Management & Itemized Returns**:
-   - `Tenant\SalesInvoiceController@index`: Invoice registry with revenue, cash, credit receivables, and profit margin summary cards.
-   - `Tenant\SalesInvoiceController@show`: Comprehensive invoice view with profit analysis per item.
-   - `Tenant\SalesInvoiceController@returnItem`: Full and partial sales return processing, restocking inventory (`is_restocked = true`), generating inward stock movements (`sale_return`), and refunding cash or crediting customer ledger.
-7. **Sidebar & Navigation**:
-   - Added POS Cashier Counter and Sales & Invoices menus to tenant sidebar.
+1. **Produce Spoilage & Wastage Vouchers**:
+   - `wastage_records` tracking sequential voucher numbers (`WST-YYMM-XXXXX`), date, branch, primary spoilage reason (`spoilage`, `drying_shrinkage`, `handling_damage`, `pest_damage`, `trimming_cleaning`, `expired`, `other`), status (`pending_approval`, `approved`, `rejected`), total items, total weight (kg), total financial loss (PKR), approver details, rejection reasons, and notes.
+   - `wastage_record_items` recording individual produce lines, batch lots, wasted quantity, unit cost basis, financial loss value, disposal method, and line notes.
+2. **Produce Sorting & Quality Regrading**:
+   - `produce_regradings` table and UI supporting morning sorting operations where bulk arrivals (e.g. Grade A tomatoes) are culled and regraded into secondary produce (e.g. Grade B tomatoes) with sorting shrinkage and financial cull loss tracked atomically.
+3. **Approval Workflow Architecture**:
+   - Staff can submit vouchers as draft (`pending_approval`) where inventory remains untouched until authorized managers review and approve the voucher (`POST /tenant/inventory/wastage/{id}/approve`) or reject it with an actionable reason (`POST /tenant/inventory/wastage/{id}/reject`).
+   - Managers/owners can also approve immediately upon submission.
+4. **FIFO & Specific Batch Depletion**:
+   - Approved wastage immediately decrements branch aggregate inventory (`inventory_stocks`), depletes corresponding lot batches (`inventory_batches`), and writes immutable double-entry stock movement records (`stock_movements` with type `wastage_out`).
+5. **Bilingual Localization & Navigation**:
+   - Reason badges and disposal methods formatted with English and Urdu Nastaliq translations (`خراب / گلا سڑا`, `سوکھنا / وزن کی کمی`, `ٹوٹ پھوٹ / نقصان`, `صفائی / چھانٹی`).
+   - Integrated Wastage & Spoilage Loss and Produce Sorting & Regrading into tenant sidebar navigation.
 
 ---
 
 ## 3. Database Changes
-1. **New Migration**: `database/migrations/2026_11_15_051656_create_pos_and_sales_tables.php`
-   - `pos_sessions`
-   - `sales_invoices`
-   - `sales_invoice_items`
-   - `sales_invoice_payments`
-   - `held_sales_tickets`
-   - `sales_returns`
-   - `sales_return_items`
+1. **New Migration**: `database/migrations/2026_11_15_052901_create_wastage_and_damage_tables.php`
+   - `wastage_records`
+   - `wastage_record_items`
+   - `produce_regradings`
 2. **Models Created**:
-   - `PosSession`, `SalesInvoice`, `SalesInvoiceItem`, `SalesInvoicePayment`, `HeldSalesTicket`, `SalesReturn`, `SalesReturnItem`.
+   - `WastageRecord`, `WastageRecordItem`, `ProduceRegrading`.
 3. **Services Created**:
-   - `App\Services\PosService`.
+   - `App\Services\WastageService`.
 
 ---
 
 ## 4. Routes and Pages Created
-- `GET /tenant/pos`: `tenant.pos.counter`
-- `POST /tenant/pos/checkout`: `tenant.pos.checkout`
-- `POST /tenant/pos/hold`: `tenant.pos.hold`
-- `GET /tenant/pos/held-tickets`: `tenant.pos.held-tickets`
-- `GET /tenant/pos/receipt/{invoice}`: `tenant.pos.receipt`
-- `POST /tenant/pos-sessions/open`: `tenant.pos-sessions.open`
-- `POST /tenant/pos-sessions/{session}/close`: `tenant.pos-sessions.close`
-- `GET /tenant/sales`: `tenant.sales.index`
-- `GET /tenant/sales/{invoice}`: `tenant.sales.show`
-- `POST /tenant/sales/{invoice}/return`: `tenant.sales.return`
+- `GET /tenant/inventory/wastage`: `tenant.inventory.wastage.index`
+- `GET /tenant/inventory/wastage/create`: `tenant.inventory.wastage.create`
+- `POST /tenant/inventory/wastage`: `tenant.inventory.wastage.store`
+- `GET /tenant/inventory/wastage/{id}`: `tenant.inventory.wastage.show`
+- `POST /tenant/inventory/wastage/{id}/approve`: `tenant.inventory.wastage.approve`
+- `POST /tenant/inventory/wastage/{id}/reject`: `tenant.inventory.wastage.reject`
+- `GET /tenant/inventory/regradings`: `tenant.inventory.regradings.index`
+- `GET /tenant/inventory/regradings/create`: `tenant.inventory.regradings.create`
+- `POST /tenant/inventory/regradings`: `tenant.inventory.regradings.store`
 
 ---
 
 ## 5. Tests Executed and Results
-- **Test File**: `tests/Feature/Phase11PosAndSalesManagementTest.php`
-- **Results**: 7 / 7 test methods passed.
-  1. `test_cashier_can_open_and_close_pos_session_with_drawer_variance`: Passed.
-  2. `test_cashier_can_checkout_cash_sale_with_fifo_stock_deduction_and_cogs_profit`: Passed.
-  3. `test_credit_customer_sale_checks_credit_limit_and_updates_ledger`: Passed.
-  4. `test_credit_customer_sale_rejected_if_exceeds_credit_limit`: Passed.
-  5. `test_cashier_can_hold_and_recall_shopping_cart`: Passed.
-  6. `test_sales_return_refunds_and_restocks_inventory`: Passed.
-  7. `test_tenant_isolation_in_pos_and_sales`: Passed.
-- **Full Application Test Suite**: **91 tests passed, 489 assertions, 0 failures**.
+- **Test File**: `tests/Feature/Phase12WastageAndDamageManagementTest.php`
+- **Results**: 7 / 7 test methods passed (32 assertions).
+  1. `test_user_can_record_approved_wastage_and_stock_is_deducted`: Passed.
+  2. `test_user_can_submit_pending_approval_wastage_and_stock_is_not_deducted_until_approved`: Passed.
+  3. `test_manager_can_reject_pending_wastage_voucher`: Passed.
+  4. `test_produce_sorting_and_regrading_deducts_source_adds_target_and_logs_loss`: Passed.
+  5. `test_tenant_isolation_in_wastage_and_damage`: Passed.
+  6. `test_wastage_with_specific_batch_depletes_that_batch`: Passed.
+  7. `test_bilingual_reason_labels_and_status_badges`: Passed.
+- **Full Application Test Suite**: **98 tests passed, 521 assertions, 0 failures**.
 - **Code Formatting**: Verified with Laravel Pint (`vendor/bin/pint --dirty --format agent`).
 
 ---
 
 ## 6. Pending Tasks
-- None for Phase 11. All POS, checkout, thermal receipt, credit verification, session drawer reconciliation, and return restocking requirements are completely implemented and verified.
-- Proceed to Phase 12: Wastage, Damage & Stock Adjustments.
+- None for Phase 12.
+- Proceed to Phase 13: Expense Management.
 
 ---
 
 ## 7. Known Issues
-- None. All features are verified and covered by automated feature tests.
+- None.
 
 ---
 
 ## 8. Is the Phase Genuinely Complete?
-**YES**. Phase 11 is 100% complete, fully functional, beautifully styled, properly isolated for multi-tenancy, and thoroughly tested.
+**YES**. Phase 12 is 100% complete, fully functional, beautifully styled, properly isolated for multi-tenancy, and thoroughly tested.

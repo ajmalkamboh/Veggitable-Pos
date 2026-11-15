@@ -474,5 +474,66 @@ Itemized and full returns with inventory restock and refund vouchers.
 
 ---
 
-## 7. Super Admin, Roles & Security Tables
+## 7. Produce Wastage, Damage & Regrading Tables (Phase 12)
+
+### `wastage_records`
+Produce spoilage, drying shrinkage, transit damage, and pest infestation loss vouchers.
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `branch_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `branches(id)` ON DELETE CASCADE
+- `wastage_no`: VARCHAR(50) NOT NULL (e.g. `WST-2601-00001`)
+- `date`: DATE NOT NULL
+- `reason`: VARCHAR(50) NOT NULL DEFAULT 'spoilage' (`spoilage`, `drying_shrinkage`, `handling_damage`, `pest_damage`, `trimming_cleaning`, `expired`, `other`)
+- `status`: VARCHAR(20) NOT NULL DEFAULT 'approved' (`pending_approval`, `approved`, `rejected`)
+- `total_items_count`: INT UNSIGNED NOT NULL DEFAULT 0
+- `total_quantity`: DECIMAL(15, 3) NOT NULL DEFAULT 0.000 (Total kg wasted)
+- `total_loss_cost`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00 (Total PKR financial loss)
+- `approved_by`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `users(id)` ON DELETE SET NULL
+- `approved_at`: TIMESTAMP NULL
+- `rejection_reason`: VARCHAR(255) NULL
+- `notes`: TEXT NULL
+- `created_by`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `users(id)` ON DELETE SET NULL
+- `created_at`, `updated_at`: TIMESTAMP NULL
+- `deleted_at`: TIMESTAMP NULL (Soft Deletes)
+- **Indexes**: `UNIQUE(tenant_id, wastage_no)`, `INDEX(tenant_id, branch_id, date)`, `INDEX(tenant_id, status)`
+
+### `wastage_record_items`
+Produce line items within each wastage voucher with loss valuation and disposal method.
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `wastage_record_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `wastage_records(id)` ON DELETE CASCADE
+- `product_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `products(id)` ON DELETE CASCADE
+- `batch_id`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `inventory_batches(id)` ON DELETE SET NULL
+- `quantity`: DECIMAL(15, 3) NOT NULL
+- `unit_code`: VARCHAR(20) NOT NULL DEFAULT 'kg'
+- `unit_cost`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00 (Historical cost basis)
+- `total_cost`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00 (Financial loss = quantity * unit_cost)
+- `disposal_method`: VARCHAR(50) NOT NULL DEFAULT 'discarded' (`discarded`, `donated`, `composted`, `salvaged`)
+- `notes`: VARCHAR(255) NULL
+- `created_at`, `updated_at`: TIMESTAMP NULL
+- **Indexes**: `INDEX(tenant_id, product_id)`
+
+### `produce_regradings`
+Produce sorting, quality grading, and downgrade sessions (e.g. morning sorting of Grade A produce into Grade B with cull loss).
+- `id`: BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- `tenant_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `tenants(id)` ON DELETE CASCADE
+- `branch_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `branches(id)` ON DELETE CASCADE
+- `regrading_no`: VARCHAR(50) NOT NULL (e.g. `RGD-2601-00001`)
+- `date`: DATE NOT NULL
+- `source_product_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `products(id)` ON DELETE CASCADE
+- `source_quantity`: DECIMAL(15, 3) NOT NULL (Input weight in kg)
+- `target_product_id`: BIGINT UNSIGNED NOT NULL, FOREIGN KEY -> `products(id)` ON DELETE CASCADE
+- `target_quantity`: DECIMAL(15, 3) NOT NULL (Output graded weight in kg)
+- `wastage_quantity`: DECIMAL(15, 3) NOT NULL DEFAULT 0.000 (Culled/lost weight = source - target)
+- `source_unit_cost`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `target_unit_cost`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00
+- `loss_cost`: DECIMAL(15, 2) NOT NULL DEFAULT 0.00 (Financial loss = wastage_quantity * source_unit_cost)
+- `notes`: TEXT NULL
+- `created_by`: BIGINT UNSIGNED NULL, FOREIGN KEY -> `users(id)` ON DELETE SET NULL
+- `created_at`, `updated_at`: TIMESTAMP NULL
+- **Indexes**: `UNIQUE(tenant_id, regrading_no)`, `INDEX(tenant_id, branch_id, date)`
+
+---
+
+## 8. Super Admin, Roles & Security Tables
 - `subscription_plans`, `subscriptions`, `subscription_invoices`, `roles`, `permissions`, `permission_role`, `role_user`, `audit_logs`.

@@ -26,6 +26,7 @@ use App\Http\Controllers\Tenant\StockTransferController as TenantStockTransferCo
 use App\Http\Controllers\Tenant\SupplierController as TenantSupplierController;
 use App\Http\Controllers\Tenant\UnitController as TenantUnitController;
 use App\Http\Controllers\Tenant\UserController as TenantUserController;
+use App\Http\Controllers\Tenant\WastageController as TenantWastageController;
 use App\Http\Controllers\TenantRecordController;
 use App\Http\Controllers\TenantRegistrationController;
 use App\Models\Tenant;
@@ -224,6 +225,23 @@ Route::middleware(['auth', 'tenant.active', 'tenant.prevent_cross'])->group(func
                 Route::get('/create', [TenantStockAdjustmentController::class, 'create'])->name('create');
                 Route::post('/', [TenantStockAdjustmentController::class, 'store'])->name('store');
                 Route::get('/{stockAdjustment}', [TenantStockAdjustmentController::class, 'show'])->name('show');
+            });
+
+            // Produce Wastage, Damage & Spoilage Loss
+            Route::prefix('wastage')->name('wastage.')->group(function () {
+                Route::get('/', [TenantWastageController::class, 'index'])->name('index');
+                Route::get('/create', [TenantWastageController::class, 'create'])->name('create');
+                Route::post('/', [TenantWastageController::class, 'store'])->name('store');
+                Route::get('/{wastage}', [TenantWastageController::class, 'show'])->name('show');
+                Route::post('/{wastage}/approve', [TenantWastageController::class, 'approve'])->name('approve');
+                Route::post('/{wastage}/reject', [TenantWastageController::class, 'reject'])->name('reject');
+            });
+
+            // Sorting, Grading & Produce Downgrades
+            Route::prefix('regradings')->name('regradings.')->group(function () {
+                Route::get('/', [TenantWastageController::class, 'regradingsIndex'])->name('index');
+                Route::get('/create', [TenantWastageController::class, 'regradingCreate'])->name('create');
+                Route::post('/', [TenantWastageController::class, 'regradingStore'])->name('store');
             });
         });
 

@@ -1,15 +1,13 @@
 # KNOWN ISSUES & TECHNICAL DEBT TRACKER
 
-## Phase 11 Status: Complete & Verified — No Active Blockers
+## Phase 12 Status: Complete & Verified — No Active Blockers
 
 ### Notes & Verifications:
-1. **FIFO Costing & Profit Margin Calculation**:
-   - Every produce sale depletes the oldest active batches first and captures historical cost price directly into `sales_invoice_items.cost_price`, allowing exact Gross Profit and COGS calculation in real time.
-2. **Customer Credit Limit Gating**:
-   - Checkout with partial or full `credit` payment enforces `$customer->credit_limit` validation (`current_balance + credit_due <= credit_limit`). If exceeded, the transaction is rejected with an actionable validation error.
-3. **Cashier Till Variance Tracking**:
-   - `PosSession` tracks opening cash, sales payments, cash drops, and calculates discrepancy on close (`closing_cash - expected_cash`), ensuring drawer accountability.
-4. **Restocking on Sales Returns**:
-   - Returned produce items can be conditionally restocked (`is_restocked = true`), which immediately increments `inventory_stocks`, appends a `sale_return` inward movement to `stock_movements`, and reinstates quantity into available batches.
-5. **No Active Blockers**:
-   - All 91 automated tests pass cleanly with 489 assertions. Code conforms strictly to Laravel Pint standards.
+1. **Wastage Cost Valuation & Inventory Depletion**:
+   - Spoilage, drying shrinkage, transit damage, and cull loss calculate financial loss based on produce batch cost basis or master cost price, updating aggregate stock and depleting specific or FIFO batches.
+2. **Approval Workflow Gating**:
+   - Draft wastage vouchers (`status = 'pending_approval'`) do not deduct stock or affect inventory balances until explicitly approved by an authorized manager/owner.
+3. **Produce Sorting & Regrading Architecture**:
+   - Morning grading sessions (`produce_regradings`) accurately balance input vs yield output, accounting for sorting shrinkage and cull loss both in physical weights (kg) and accounting loss (PKR).
+4. **No Active Blockers**:
+   - All 98 automated tests pass cleanly with 521 assertions across all 12 completed phases. Code conforms strictly to Laravel Pint standards.

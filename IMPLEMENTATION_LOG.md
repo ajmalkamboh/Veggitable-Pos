@@ -244,3 +244,27 @@
    - `Phase11PosAndSalesManagementTest`: 7 comprehensive test cases verifying POS session open/close with variance calculation, checkout with real-time stock deduction and COGS profit calculation, walk-in cash transaction, credit customer checkout with ledger updates and limit rejection, cart hold & recall, partial item return with inventory restocking, and strict multi-tenant isolation.
    - Complete application test suite: **91 tests passed, 489 assertions, 0 failures**.
    - Code formatted with Laravel Pint.
+
+## Phase 12: Wastage, Damage & Stock Adjustments (Completed 2026-11-15)
+1. **Database Schema & Migrations**:
+   - `wastage_records`: Spoilage and damage voucher tracking with sequential numbering (`WST-YYMM-XXXXX`), date, primary reason (`spoilage`, `drying_shrinkage`, `handling_damage`, `pest_damage`, `trimming_cleaning`, `expired`, `other`), status (`pending_approval`, `approved`, `rejected`), total items count, total quantity (kg), total financial loss cost (PKR), approver ID, approval timestamp, rejection reason, and inspection notes.
+   - `wastage_record_items`: Itemized produce lines linking to product, batch/lot, wasted weight quantity, unit cost basis, calculated financial loss, disposal method (`discarded`, `donated`, `composted`, `salvaged`), and line notes.
+   - `produce_regradings`: Produce sorting and quality grading sessions (`RGD-YYMM-XXXXX`) converting input source product (e.g. Grade A) to output target product (e.g. Grade B) while accounting for sorting cull loss and drying shrinkage.
+2. **Business Models & Services**:
+   - Models: `WastageRecord`, `WastageRecordItem`, `ProduceRegrading` with bilingual Urdu/English reason labels and status badges.
+   - `App\Services\WastageService`:
+     - `createWastage`: Records itemized wastage vouchers, computes financial cost valuation, and if approved immediately deducts stock and logs `wastage_out` stock movements.
+     - `approve`: Workflow approval action for managers/owners which executes stock deductions and batch allocations on pending vouchers.
+     - `reject`: Rejection action recording reason without inventory impact.
+     - `regradeProduce`: Atomically deducts source produce stock, creates new target graded lot batch, logs shrinkage cull loss, and records audit trail.
+3. **Controllers & Operations**:
+   - `Tenant\WastageController`:
+     - `index`: Summary cards (Month Loss PKR, Month Weight Lost kg, Pending Approvals, Total Vouchers), multi-criteria filtering, and voucher registry.
+     - `create` & `store`: Interactive multi-item voucher entry with live stock hints, cost basis calculation, and approval workflow selection.
+     - `show`: Itemized breakdown, disposal method badges, and manager approval/rejection modal.
+     - `approve` & `reject`: Manager decision endpoints.
+     - `regradingsIndex`, `regradingCreate` & `regradingStore`: Produce sorting and regrading management.
+4. **Testing & Verification**:
+   - `Phase12WastageAndDamageManagementTest`: 7 comprehensive test cases verifying approved wastage stock and batch deduction, pending approval workflow, manager rejection, produce sorting and regrading calculations, specific batch allocation, bilingual labels, and tenant isolation.
+   - Complete application test suite: **98 tests passed, 521 assertions, 0 failures**.
+   - Code formatted with Laravel Pint.

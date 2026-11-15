@@ -139,6 +139,8 @@
           <li><a class="nav-link {{ request()->routeIs('tenant.inventory.movements') ? 'active' : '' }}" href="{{ route('tenant.inventory.movements') }}">{{ __('Stock Movement Ledger') }}</a></li>
           <li><a class="nav-link {{ request()->routeIs('tenant.inventory.transfers.*') ? 'active' : '' }}" href="{{ route('tenant.inventory.transfers.index') }}">{{ __('Branch Transfers') }}</a></li>
           <li><a class="nav-link {{ request()->routeIs('tenant.inventory.adjustments.*') ? 'active' : '' }}" href="{{ route('tenant.inventory.adjustments.index') }}">{{ __('Physical Audit Adjustments') }}</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.inventory.wastage.*') ? 'active' : '' }}" href="{{ route('tenant.inventory.wastage.index') }}">{{ __('Wastage & Spoilage Loss') }}</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.inventory.regradings.*') ? 'active' : '' }}" href="{{ route('tenant.inventory.regradings.index') }}">{{ __('Produce Sorting & Regrading') }}</a></li>
         </ul>
       </li>
 

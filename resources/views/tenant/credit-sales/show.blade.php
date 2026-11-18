@@ -318,7 +318,7 @@
           </button>
 
           @if($customer)
-            <a href="{{ route('tenant.customers.ledger', $customer) }}" class="btn btn-outline-primary d-flex align-items-center justify-content-between p-2 mt-2">
+            <a href="{{ route('tenant.customers.show', $customer) }}" class="btn btn-outline-primary d-flex align-items-center justify-content-between p-2 mt-2">
               <div class="d-flex align-items-center gap-2">
                 <i class="bi bi-journal-text fs-5 text-primary"></i>
                 <div class="text-start">

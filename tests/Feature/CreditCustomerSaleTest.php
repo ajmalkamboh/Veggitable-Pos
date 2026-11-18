@@ -483,4 +483,37 @@ class CreditCustomerSaleTest extends TestCase
 
         $this->assertContains($pdfResponse->status(), [403, 404]);
     }
+
+    public function test_user_can_view_credit_sale_details_and_customer_ledger(): void
+    {
+        $this->actingAs($this->userA)->post(route('tenant.credit-sales.store'), [
+            'customer_id' => $this->customerA->id,
+            'branch_id' => $this->branchA->id,
+            'date' => now()->toDateString(),
+            'items' => [
+                [
+                    'product_id' => $this->tomato->id,
+                    'unit_id' => $this->kg->id,
+                    'quantity' => 5.00,
+                    'unit_price' => 80.00,
+                ],
+            ],
+        ]);
+
+        $invoice = SalesInvoice::where('tenant_id', $this->tenantA->id)->latest('id')->first();
+
+        // 1. View credit sale show page
+        $response = $this->actingAs($this->userA)
+            ->get(route('tenant.credit-sales.show', $invoice));
+
+        $response->assertOk();
+        $response->assertSee('Customer Khata Statement');
+
+        // 2. View customer ledger route
+        $ledgerResponse = $this->actingAs($this->userA)
+            ->get(route('tenant.customers.ledger', $this->customerA));
+
+        $ledgerResponse->assertOk();
+        $ledgerResponse->assertSee($this->customerA->name);
+    }
 }

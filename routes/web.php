@@ -214,6 +214,7 @@ Route::middleware(['auth', 'tenant.active', 'tenant.prevent_cross'])->group(func
             Route::get('/create', [TenantCustomerController::class, 'create'])->name('create');
             Route::post('/', [TenantCustomerController::class, 'store'])->name('store');
             Route::get('/{customer}', [TenantCustomerController::class, 'show'])->name('show');
+            Route::get('/{customer}/ledger', [TenantCustomerController::class, 'show'])->name('ledger');
             Route::get('/{customer}/edit', [TenantCustomerController::class, 'edit'])->name('edit');
             Route::put('/{customer}', [TenantCustomerController::class, 'update'])->name('update');
             Route::delete('/{customer}', [TenantCustomerController::class, 'destroy'])->name('destroy');

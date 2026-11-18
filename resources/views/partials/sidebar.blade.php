@@ -98,14 +98,23 @@
         </a>
       </li>
 
-      <li class="nav-item has-submenu {{ request()->routeIs('tenant.sales.*') ? 'show' : '' }}">
-        <a class="nav-link {{ request()->routeIs('tenant.sales.*') ? 'active' : '' }}" href="#" aria-expanded="false" data-tooltip="{{ __('Sales & Orders') }}">
+      <li class="nav-item">
+        <a class="nav-link {{ request()->routeIs('tenant.credit-sales.create') ? 'active' : '' }}" href="{{ route('tenant.credit-sales.create') }}" data-tooltip="{{ __('Credit Sale Entry') }}">
+          <i class="ph-duotone ph-notebook"></i>
+          <span>{{ __('Credit Customer Sale (ادھار فروخت)') }}</span>
+        </a>
+      </li>
+
+      <li class="nav-item has-submenu {{ request()->routeIs('tenant.sales.*') || request()->routeIs('tenant.credit-sales.*') ? 'show' : '' }}">
+        <a class="nav-link {{ request()->routeIs('tenant.sales.*') || request()->routeIs('tenant.credit-sales.*') ? 'active' : '' }}" href="#" aria-expanded="false" data-tooltip="{{ __('Sales & Orders') }}">
           <i class="ph-duotone ph-receipt"></i>
           <span>{{ __('Sales & Invoices') }}</span>
           <i class="ph-duotone ph-caret-down nav-arrow"></i>
         </a>
         <ul class="nav-submenu">
           <li><a class="nav-link {{ request()->routeIs('tenant.sales.index') ? 'active' : '' }}" href="{{ route('tenant.sales.index') }}">{{ __('All Sales Invoices') }}</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.credit-sales.create') ? 'active' : '' }}" href="{{ route('tenant.credit-sales.create') }}">{{ __('New Credit Sale Entry') }}</a></li>
+          <li><a class="nav-link {{ request()->routeIs('tenant.credit-sales.index') ? 'active' : '' }}" href="{{ route('tenant.credit-sales.index') }}">{{ __('Credit Sales History') }}</a></li>
           <li><a class="nav-link {{ request()->routeIs('tenant.pos.counter') ? 'active' : '' }}" href="{{ route('tenant.pos.counter') }}">{{ __('New POS Sale') }}</a></li>
         </ul>
       </li>

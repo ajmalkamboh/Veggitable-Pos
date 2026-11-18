@@ -43,4 +43,10 @@ return [
     'receivable_balance' => 'قابل وصول رقم',
     'credit_limit' => 'ادھار کی آخری حد',
     'credit_days' => 'ادھار کی مدت (دن)',
+    'credit_sales' => 'ادھار گاہک فروخت',
+    'credit_sale_entry' => 'ادھار گاہک فروخت کا اندراج',
+    'khata_balance' => 'گاہک کا کھاتہ بقایا',
+    'delivery_charges' => 'کرایہ / مزدوری اخراجات',
+    'whatsapp_share' => 'واٹس ایپ پر بل بھیجیں',
+    'export_csv' => 'سی ایس وی ایکسپورٹ',
 ];

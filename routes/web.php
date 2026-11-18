@@ -15,6 +15,7 @@ use App\Http\Controllers\Tenant\AccountingController as TenantAccountingControll
 use App\Http\Controllers\Tenant\AuditLogController as TenantAuditController;
 use App\Http\Controllers\Tenant\BackupController as TenantBackupController;
 use App\Http\Controllers\Tenant\CategoryController as TenantCategoryController;
+use App\Http\Controllers\Tenant\CreditSaleController as TenantCreditSaleController;
 use App\Http\Controllers\Tenant\CustomerController as TenantCustomerController;
 use App\Http\Controllers\Tenant\DashboardController as TenantDashboardController;
 use App\Http\Controllers\Tenant\ExpenseController as TenantExpenseController;
@@ -289,6 +290,18 @@ Route::middleware(['auth', 'tenant.active', 'tenant.prevent_cross'])->group(func
             Route::get('/', [TenantSalesInvoiceController::class, 'index'])->name('index');
             Route::get('/{salesInvoice}', [TenantSalesInvoiceController::class, 'show'])->name('show');
             Route::post('/{salesInvoice}/returns', [TenantSalesInvoiceController::class, 'returnItem'])->name('returns.store');
+        });
+
+        // Credit Customer Sales Entry & Management (ادھار گاہک فروخت)
+        Route::prefix('tenant/credit-sales')->name('tenant.credit-sales.')->group(function () {
+            Route::get('/', [TenantCreditSaleController::class, 'index'])->name('index');
+            Route::get('/create', [TenantCreditSaleController::class, 'create'])->name('create');
+            Route::post('/', [TenantCreditSaleController::class, 'store'])->name('store');
+            Route::get('/export-csv', [TenantCreditSaleController::class, 'exportCsv'])->name('export-csv');
+            Route::get('/{salesInvoice}', [TenantCreditSaleController::class, 'show'])->name('show');
+            Route::get('/{salesInvoice}/pdf', [TenantCreditSaleController::class, 'downloadPdf'])->name('pdf');
+            Route::get('/{salesInvoice}/whatsapp', [TenantCreditSaleController::class, 'whatsappShare'])->name('whatsapp');
+            Route::get('/{salesInvoice}/export-single-csv', [TenantCreditSaleController::class, 'exportSingleCsv'])->name('export-single-csv');
         });
 
         // Expenses & Petty Cash Management

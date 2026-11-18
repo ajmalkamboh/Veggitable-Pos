@@ -74,7 +74,7 @@
       <!-- Quick POS Access Button (for shop staff / owner / admin) -->
       @if(auth()->check() && (auth()->user()->tenant_id || auth()->user()->isSuperAdmin()))
         <div class="header-action d-none d-md-flex">
-          <a href="{{ route('tenant.pos') }}" class="btn btn-sm btn-success rounded-pill d-inline-flex align-items-center gap-1 px-3 shadow-sm text-white text-decoration-none" title="Quick POS Checkout">
+          <a href="{{ route('tenant.pos.counter') }}" class="btn btn-sm btn-success rounded-pill d-inline-flex align-items-center gap-1 px-3 shadow-sm text-white text-decoration-none" title="Quick POS Checkout">
             <i class="bi bi-cart-check"></i>
             <span class="fw-semibold">POS</span>
           </a>
@@ -207,7 +207,7 @@
                 </a>
               </li>
               <li>
-                <a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="{{ route('tenant.pos') }}">
+                <a class="dropdown-item d-flex align-items-center gap-2 px-3 py-2" href="{{ route('tenant.pos.counter') }}">
                   <i class="bi bi-cart-check text-success"></i> POS Cashier Terminal
                 </a>
               </li>

@@ -43,4 +43,10 @@ return [
     'receivable_balance' => 'Receivable Balance',
     'credit_limit' => 'Credit Limit',
     'credit_days' => 'Credit Days',
+    'credit_sales' => 'Credit Customer Sales',
+    'credit_sale_entry' => 'Credit Customer Sale Entry',
+    'khata_balance' => 'Customer Khata Balance',
+    'delivery_charges' => 'Delivery / Carriage Charges',
+    'whatsapp_share' => 'Share Bill on WhatsApp',
+    'export_csv' => 'Export CSV',
 ];

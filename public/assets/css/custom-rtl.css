@@ -88,27 +88,36 @@ html[dir="rtl"] .header-right {
     margin-right: auto;
 }
 
-/* Form inputs & controls */
-html[dir="rtl"] .input-group > :not(:first-child):not(.dropdown-menu):not(.valid-tooltip):not(.valid-feedback):not(.invalid-tooltip):not(.invalid-feedback) {
-    margin-right: -1px;
-    margin-left: 0;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-    border-top-left-radius: var(--bs-border-radius);
-    border-bottom-left-radius: var(--bs-border-radius);
+/* Search Form in RTL */
+html[dir="rtl"] .search-toggle-btn {
+    left: auto !important;
+    right: 0 !important;
 }
 
-html[dir="rtl"] .input-group > :not(:last-child):not(.dropdown-toggle):not(.dropdown-menu):not(.form-floating) {
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-    border-top-right-radius: var(--bs-border-radius);
-    border-bottom-right-radius: var(--bs-border-radius);
+html[dir="rtl"] .search-form input {
+    padding: 0 40px 0 var(--spacing-md) !important;
+    text-align: right;
 }
 
-/* Dropdown menus */
-html[dir="rtl"] .dropdown-menu-end {
-    right: auto !important;
-    left: 0 !important;
+/* User profile dropdown in RTL */
+html[dir="rtl"] .user-dropdown {
+    margin-left: 0 !important;
+    margin-right: var(--spacing-xs) !important;
+}
+
+html[dir="rtl"] .user-dropdown .user-info,
+html[dir="rtl"] .user-dropdown .dropdown-header {
+    text-align: right;
+}
+
+/* Dropdown menus in RTL */
+html[dir="rtl"] .dropdown-menu {
+    text-align: right;
+}
+
+html[dir="rtl"] .dropdown-menu-end:not([data-popper-placement]) {
+    right: auto;
+    left: 0;
 }
 
 /* Breadcrumbs */

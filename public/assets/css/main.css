@@ -1743,10 +1743,10 @@ button {
   flex-shrink: 0;
 }
 
-.header-action>button,
-.header-action>a,
-button.header-action,
-a.header-action {
+.header-action>button:not(.btn),
+.header-action>a:not(.btn),
+button.header-action:not(.btn),
+a.header-action:not(.btn) {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1762,19 +1762,39 @@ a.header-action {
 
 @media (min-width: 576px) {
 
-  .header-action>button,
-  .header-action>a,
-  button.header-action,
-  a.header-action {
+  .header-action>button:not(.btn),
+  .header-action>a:not(.btn),
+  button.header-action:not(.btn),
+  a.header-action:not(.btn) {
     width: 40px;
     height: 40px;
   }
 }
 
-.header-action>button:hover,
-.header-action>a:hover,
-button.header-action:hover,
-a.header-action:hover {
+/* Header Action Pill Buttons (Business Context, Language, POS) */
+.header-action>button.btn,
+.header-action>a.btn,
+button.header-action.btn,
+a.header-action.btn {
+  width: auto !important;
+  min-width: auto !important;
+  height: 38px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 12px !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+  border-radius: 20px !important;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.header-action>button:not(.btn):hover,
+.header-action>a:not(.btn):hover,
+button.header-action:not(.btn):hover,
+a.header-action:not(.btn):hover {
   background-color: color-mix(in srgb, var(--accent-color), transparent 90%);
   color: var(--accent-color);
 }
@@ -2232,9 +2252,9 @@ a.header-action:hover {
 /*--------------------------------------------------------------
 # Mobile Header Actions
 --------------------------------------------------------------*/
-/* Desktop actions - visible on larger screens */
+/* Desktop actions - visible and responsive across all screens */
 .header-actions-desktop {
-  display: none;
+  display: flex;
   align-items: center;
   gap: var(--spacing-xs);
 }
@@ -2242,12 +2262,6 @@ a.header-action:hover {
 @media (min-width: 576px) {
   .header-actions-desktop {
     gap: var(--spacing-sm);
-  }
-}
-
-@media (min-width: 768px) {
-  .header-actions-desktop {
-    display: flex;
   }
 }
 
